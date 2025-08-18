@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "seasonal"
+name = "anom_recon"
 version = "0.1.0"
-description = "Seasonal Forecast test"
-authors = ["Gabriele Franch <franch@fbk.eu>"]
+description = "fields reconstruction from atmospheric circulation"
+authors = ["Alessandro Camillett <acamilletti@fbk.eu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -15,7 +15,6 @@ cfgrib = "^0.9.14.0"
 ipykernel = "^6.29.5"
 netcdf4 = "^1.7.1.post1"
 matplotlib = "^3.9.1"
-seaborn = "^0.13.2"
 einops = "^0.8.0"
 torchinfo = "^1.8.0"
 hydra-core = "^1.3.2"
