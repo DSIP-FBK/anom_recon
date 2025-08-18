@@ -6,9 +6,9 @@
 <a href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white"></a>
 <a href="https://hydra.cc/"><img alt="Config: Hydra" src="https://img.shields.io/badge/Config-Hydra-89b8cd"></a>
 <a href="https://github.com/ashleve/lightning-hydra-template"><img alt="Template" src="https://img.shields.io/badge/-Lightning--Hydra--Template-017F2F?style=flat&logo=github&labelColor=gray"></a><br>
-[![Paper](http://img.shields.io/badge/paper-arxiv.2407.02089-B31B1B.svg)](https://arxiv.org/abs/2407.02089)
-[![Data](http://img.shields.io/badge/Data-Zenodo-4b44ce.svg)](https://doi.org/10.5281/zenodo.13692016)
-[![Models](http://img.shields.io/badge/Models-Zenodo-4b44ce.svg)](https://doi.org/10.5281/zenodo.13594332)
+[![Paper](https://img.shields.io/badge/arXiv-2506.13758-b31b1b.svg?style=flat&logo=arXiv)](https://arxiv.org/abs/2506.13758)
+[![Zenodo](https://img.shields.io/badge/Zenodo-16751720-007ec6.svg?logo=zenodo)](https://zenodo.org/records/16751720)
+
 
 </div>
 
@@ -19,23 +19,22 @@
 Code release for the paper <b>"AI reconstruction of European weather from the Euro-Atlantic regimes"</b>
 
 ```
-Camilletti, A., Tomasi, E., Franch, G., (2025). AI reconstruction of European weather from the Euro-Atlantic regimes. arXiv preprint arXiv:.
+Camilletti, A., Tomasi, E., Franch, G., (2025). AI reconstruction of European weather from the Euro-Atlantic regimes. arXiv preprint 2506.13758.
 ```
 
-<b>preprint</b>: 
+<b>Preprint</b>: https://arxiv.org/abs/2506.13758
 
-<b>data</b>: 
+<b>Data & Models</b>: https://zenodo.org/records/16751720
 
-<b>models</b>: 
 
 ## Folders
 The project follows the folder structure of [lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template):
-  - configs: configs files (.yaml) for training hyperparameters
-  - data: containing the data used for training and testing the model
-  - logs: training output, including the pretrained models
+  - configs: configs files (.yaml) for configuring the hyperparameters
+  - data: containing the data used for training and testing the model. Initially is empty. Data can be downloaded from Zenodo: https://zenodo.org/records/16751720 
+  - logs: training output, including the pretrained models. It will be created automatically during training.
   - notebooks: jupyter notebooks for analyzing the data and testing the model
   - scripts: python scripts for analyzing the data, testing the model and producing the plots
-  - src: PyTorch implementation of the AI-model
+  - src: PyTorch implementation of the Dataloader and the Model
 
 For a detailed description of the folder structure refer to [lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template).
 
@@ -68,6 +67,15 @@ bash create_environment.sh
 
 # activate the environment
 source .venv/bin/activate 
+```
+
+## Download data
+To download the data from zenodo, run:
+
+```bash
+cd data
+
+python download_pre-trained_model.py
 ```
 
 ## Download pre-trained model
@@ -112,4 +120,8 @@ Pretrained models can be found in
 
 ## Citing
 
-If you use this code or data, please cite:
+If you use this code or data, please cite: 
+
+```
+Camilletti, A., Franch, G., Tomasi, E., & Cristoforetti, M. (2025). AI reconstruction of European weather from the Euro-Atlantic regimes. ArXiv. https://doi.org/10.48550/arXiv.2506.13758
+```
