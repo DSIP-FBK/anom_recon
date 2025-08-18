@@ -108,7 +108,14 @@ To train models for both temperature and precipitation reconstruction with the s
 
 ```bash
 # train all models used in the paper
-bash scripts/schedule
+bash scripts/schedule.sh
+```
+
+To change the hyperparameter you can create a new `configs/experiment/new-experiment.yaml` overriding the hyperparamenters you want to modify. Then you can run
+
+```bash
+# run a custom experiment
+python train.py experiment=new-experiment
 ```
 
 ## 📊 Reproduce the plots
