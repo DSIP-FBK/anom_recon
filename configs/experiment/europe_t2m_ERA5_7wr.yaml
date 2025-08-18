@@ -1,0 +1,19 @@
+# @package _global_
+
+tags: ["noa_1940_2024_7wr"]
+
+seed: 42
+
+trainer:
+  precision: 16-mixed
+
+task_name: t2m_ERA5
+
+data:
+  indexes_paths: 
+    - ${paths.data_dir}/monthly_z500_7wr_noa_19400101-20241201.nc
+  anomalies_path: ${paths.data_dir}/monthly_t2m_anom_europe_19400101-20241231_regrid.nc
+  months: []
+  num_indexes:
+    - 7
+  train_last_date: '2010-12-31'

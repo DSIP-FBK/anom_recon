@@ -1,0 +1,48 @@
+import argparse
+import numpy as np
+import pandas as pd
+import xarray as xr
+
+# custom functions
+from functions import low_pass_weights
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--file", help="path to the NetCDF input file")
+parser.add_argument("--out", help="path and filename of the output NetCDF file" )
+parser.add_argument("--clim_start", help="(str) start date of the climatology period (e.g. 1981-01-01)")
+parser.add_argument("--clim_end", help="(str) end date of the climatology period (e.g. 2010-12-31)")
+args = parser.parse_args()
+
+# parameters
+g = 9.80665  # m s^-2
+
+print('Reading NetCDF...', end='\r')
+da = xr.open_dataarray(args.file)
+
+if any([s in args.file for s in ('z500', 'geopotential')]):
+    da = da / g
+
+print('Computing Anomalies...', end='\r')
+
+# calendar day climatology
+cal_clim = da.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+# anomalies 
+anom = da.groupby('time.dayofyear') - cal_clim
+
+# 10 days Lanczos filtered
+window = 31
+wgts = xr.DataArray(
+    low_pass_weights(window, 1. / 10.),
+    dims=['window']
+    )
+anom_filtered = anom.pad(time=15, mode='wrap').rolling(time=window, center=True).construct('window').dot(wgts).dropna(dim='time')
+
+# calendar day standard deviation
+cal_31day_std = anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+
+# normalized anomalies
+anom_norm = anom_filtered.groupby('time.dayofyear') / cal_31day_std.mean(dim=['latitude', 'longitude'])
+
+# save file
+print('Saving...', end='\r')
+anom_norm.to_netcdf(args.out)

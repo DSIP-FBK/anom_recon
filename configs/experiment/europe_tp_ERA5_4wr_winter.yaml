@@ -1,0 +1,19 @@
+# @package _global_
+
+tags: ["noa_1940_2024_4wr", "winter"]
+
+seed: 42
+
+trainer:
+  precision: 16-mixed
+
+task_name: tp_ERA5_DJF
+
+data:
+  indexes_paths: 
+    - ${paths.data_dir}/monthly_z500_4wr_DJF_noa_19400101-20241201.nc
+  anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_merged.nc
+  months: [12,1,2]
+  num_indexes:
+    - 4
+  train_last_date: '2010-12-31'

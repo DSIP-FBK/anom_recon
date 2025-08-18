@@ -1,0 +1,21 @@
+\begin{table*}
+    \centering
+    \begin{tabular}{lcccccccccccc}
+    \toprule
+    &\multicolumn{12}{c}{two-meter temperature}\\
+    &\multicolumn{4}{c}{MAE}    &\multicolumn{4}{c}{ACC}    &\multicolumn{4}{c}{CE}\\
+    \cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13}
+              &7 WR  &4 WR  &NAO  &No idx  &7 WR  &4 WR  &NAO  &No idx  &7 WR  &4 WR  &NAO  &No idx\\
+    DJF    &0.290(14)  &0.347(16)  &0.363(6)  &0.361(4)  &0.614(35)  &0.441(82)  &0.338(40)  &0.299(72)  &0.286(37)  &0.077(60)  &0.022(13)  &-0.056(31) \\
+    JJA    &0.463(16)  &0.461(10)  &0.491(16)  &0.540(16)  &0.484(44)  &0.397(37)  &0.342(16)  &0.322(29)  &0.052(40)  &0.030(24)  &-0.059(52)  &-0.170(43) \\
+    \cmidrule(lr){2-13} \\
+    &\multicolumn{12}{c}{total precipitation}\\
+    &\multicolumn{4}{c}{MAE}    &\multicolumn{4}{c}{ACC}    &\multicolumn{4}{c}{CE}\\
+    \cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13}
+    DJF    &0.288(6)  &0.297(5)  &0.360(24)  &0.381(1)  &0.551(14)  &0.482(7)  &0.244(128)  &0.045(38)  &0.242(18)  &0.169(13)  &-0.006(25)  &-0.043(2) \\
+    JJA    &0.359(2)  &0.372(5)  &0.399(6)  &0.409(0)  &0.379(13)  &0.317(34)  &0.104(50)  &0.001(13)  &0.084(19)  &0.052(14)  &-0.039(7)  &-0.032(2) \\
+    \bottomrule
+    \end{tabular}
+    \caption{Median spatial values of MAE, ACC, and CE for reconstructed monthly mean two-meter temperature and total precipitation during winter (DJF) and summer (JJA), using seven \ac{WR}, four 4 \ac{WR}, NAO, or no indices as input to the AI model. Uncertainties (in parentheses) denote the semi-range (half the difference between maximum and minimum) of the skill metrics’ medians across multiple model initializations with different random seeds.}
+    \label{tab:numWR}
+\end{table*}

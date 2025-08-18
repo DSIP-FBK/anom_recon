@@ -1,0 +1,18 @@
+_target_: src.models.anomrecon_module.AnomReconModule
+
+net:
+  _target_: src.models.anomrecon.AnomRecon
+  dropout: 0.2
+  num_indexes: ${copy:${data.num_indexes}}
+  n_months: ${list_len:${data.months}}
+  flin_hidden: 24
+  fconv_in: 32
+
+loss:
+  _target_: torch.nn.MSELoss
+
+monitor: val_loss
+lr_factor: 0.5
+lr_patience: 10
+lr_eps: 1e-8
+  
