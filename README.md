@@ -27,7 +27,7 @@ Camilletti, A., Tomasi, E., Franch, G., (2025). AI reconstruction of European we
 <b>Data & Models</b>: https://zenodo.org/records/16751720
 
 
-## Folders
+## 📁 Folders
 The project follows the folder structure of [lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template):
   - configs: configs files (.yaml) for configuring the hyperparameters
   - data: containing the data used for training and testing the model. Initially is empty. Data can be downloaded from Zenodo: https://zenodo.org/records/16751720 
@@ -38,7 +38,7 @@ The project follows the folder structure of [lightning-hydra-template](https://g
 
 For a detailed description of the folder structure refer to [lightning-hydra-template](https://github.com/ashleve/lightning-hydra-template).
 
-## Requirements:
+## 📄 Requirements:
 Experiments were run in a Python 3.12 environment with the following packages:
 
   - numpy
@@ -56,7 +56,7 @@ Experiments were run in a Python 3.12 environment with the following packages:
   - hydra-colorlog
 
 
-### Installation
+### 📦 Installation
 
 ```bash
 # install python3.12 on ubuntu
@@ -69,7 +69,7 @@ bash create_environment.sh
 source .venv/bin/activate 
 ```
 
-## Download data
+## ⬇️ Download data
 To download the data from zenodo, run:
 
 ```bash
@@ -82,7 +82,7 @@ python download_data.py
 or download the data manually from Zenodo (https://zenodo.org/records/16751720)
 
 
-## Pre-processing of the data
+## ⚙️ Pre-processing of the data
 The raw data in the Zenodo dataset must be preprocessed to obtain the anomalies and the indices used to train and validate the model.
 
 ### Compute anomalies
@@ -103,7 +103,7 @@ To compute the seven WR, four WR and NAO indices from the daily geopotential hei
   - `seas5_monthly_z500_anom`: SEAS5 monthly geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
 
 
-## Train your own model
+## 🤖 Train the model
 To train models for both temperature and precipitation reconstruction with the same hyperparameters used in the paper:
 
 ```bash
@@ -111,7 +111,7 @@ To train models for both temperature and precipitation reconstruction with the s
 bash scripts/schedule
 ```
 
-## Reproduce the plots
+## 📊 Reproduce the plots
 To reproduce the plots shown in the paper, run:
 
 ```bash
@@ -167,7 +167,7 @@ Pretrained models can be found in
   - <code>logs/t2m_ERA5/multiruns</code> for two-meter temperature
   - <code>logs/tp_ERA5/multiruns</code> for total precipitation.
 
-## Citing
+## 📖 Citing
 
 If you use this code or data, please cite: 
 
