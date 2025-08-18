@@ -75,23 +75,38 @@ To download the data from zenodo, run:
 ```bash
 cd data
 
-python download_pre-trained_model.py
+# download the dataset
+python download_data.py
 ```
 
-## Download pre-trained model
-To download the pre-trained model from zenodo, run:
+or download the data manually from Zenodo (https://zenodo.org/records/16751720)
 
-```bash
-python download_pre-trained_model.py
-```
+
+## Pre-processing of the data
+The raw data in the Zenodo dataset must be preprocessed to obtain the anomalies and the indices used to train and validate the model.
+
+### Compute anomalies
+To compute the anomalies, edit the scripts/compute_anomalies.sh with the paths to the NetCDF files containing the relevant data:
+
+  - `era5_z500_noa`: ERA5 daily geopotential height at 500 hPa in the Euro-Atlantic region.
+  - `era5_t2m_eu`: ERA5 daily two-meter temperature in Europe
+  - `era5_tp_eu`: ERA5 daily total precipitation in Europe
+
+  - `seas5_z500_noa`: SEAS5 monthly forecast of geopotential height ad 500 hPa in the Euro-Atlantic sector
+  - `seas5_t2m_eu`: SEAS5 monthly forecast of two-meter temperature in Europe
+  - `seas5_tp_eu`: SEAS5 monthly forecast of total precipitation in Europe
+
+### Compute indices
+To compute the seven WR, four WR and NAO indices from the daily geopotential height anomalies, edit the paths in the `compute_z500_indices.py`:
+
+  - `era5_daily_z500_anom`: ERA5 daily geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
+  - `seas5_monthly_z500_anom`: SEAS5 monthly geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
+
 
 ## Train your own model
 To train models for both temperature and precipitation reconstruction with the same hyperparameters used in the paper:
 
 ```bash
-# download the dataset
-python data/download_data.py
-
 # train all models used in the paper
 bash scripts/schedule
 ```
@@ -102,17 +117,51 @@ To reproduce the plots shown in the paper, run:
 ```bash
 cd scripts
 
-bash plot_results.sh <model_7wr_temp> <model_7wr_prec> <model_4wr_temp> <model_4wr_prec> <seas5_temp> <seas5_prec> <Iwr_SEAS5>
+# create the plots
+bash plot_results.sh \ 
+    <model_7wr_temp> \           # model trained to reconstruct the temperature from the the 7WR
+    <model_7wr_prec> \           # model trained to reconstruct the precipitation from the the 7WR
+    \
+    <model_4wr_temp_DJF> \       # model trained to reconstruct the temperature from the the 4WR in winter
+    <model_4wr_temp_JJA> \       # model trained to reconstruct the temperature from the the 4WR in summer
+    <model_4wr_prec_DJF> \       # model trained to reconstruct the precipitation from the the 4WR in winter
+    <model_4wr_prec_JJA> \       # model trained to reconstruct the precipitation from the the 4WR in summer
+    \
+    <model_NAO_temp_DJF> \       # model trained to reconstruct the temperature from the the NAO in winter
+    <model_NAO_temp_JJA> \       # model trained to reconstruct the temperature from the the NAO in summer
+    <model_NAO_prec_DJF> \       # model trained to reconstruct the precipitation from the the NAO in winter
+    <model_NAO_prec_JJA> \       # model trained to reconstruct the precipitation from the the NAO in summer
+    \ 
+    <model_no_index_temp> \      # model trained to reconstruct the temperature without WR information
+    <model_no_index_prec> \      # model trained to reconstruct the temperature without WR information
+    \
+    <era5_daily_z500> \          # ERA5 daily geopotential height data at 500 hPa in the Euro-Atlantic region
+    <era5_monthly_temp_anom> \   # ERA5 monthly two-meter temperature anomalies in Europe
+    <era5_monthly_prec_anom> \   # ERA5 monthly precipitation anomaly in Europe
+    \
+    <seas5_monthly_temp_anom> \  # SEAS5 monthly two-meter temperature anomaly (forecast) in Europe
+    <seas5_monthly_prec_anom> \  # SEAS5 monthly precipitation anomaly (forecast) in Europe
+    <Iwr_SEAS5>                  # Index computed from SEAS5 geopotential height at 500 hPa in the Euro-Atlantic sector
 ```
 
 where <texttt>\<path\></texttt> are the paths to:
-  - model_7wr_temp: model trained to reconstruct the monthly mean two-meter temperature using seven weather regimes.
-  - model_7wr_prec: model trained to reconstruct the monthly total precipitation using seven weather regimes.
-  - model_4wr_temp: model trained to reconstruct the monthly mean two-meter  temperature using four weather regimes.
-  - model_4wr_prec: model trained to reconstruct the monthly total precipitation using four weather regimes.
-  - seas5_temp: NetCDF file containing SEAS5 hindcast and forecast of motlhy mean two-meter temperature.
-  - seas5_prec: NetCDF file containing SEAS5 hindcast and forecast of motlhy total precipitation.
-  - Iwr_SEAS5: NetCDF file containing the seven weather regime indices forecasted by SEAS5 (geopotential height at 500 hPa).
+  - <b> Models: </b>
+    - `model_7wr_temp`: model trained to reconstruct the monthly mean two-meter temperature using seven weather regimes.
+    - `model_7wr_prec`: model trained to reconstruct the monthly total precipitation using seven weather regimes.
+    - `model_4wr_temp_DJF/JJA`: model trained to reconstruct the monthly mean two-meter temperature using four weather regimes in winter/summer.
+    - `model_4wr_prec_DJF/JJA`: model trained to reconstruct the monthly total precipitation using four weather regimes in winter/summer.
+    - `model_NAO_temp_DJF/JJA`: model trained to reconstruct the monthly mean two-meter temperature using the NAO index in winter/summer.
+    - `model_NAO_prec_DJF/JJA`: model trained to reconstruct the monthly total precipitation using NAO the index in winter/summer
+    - `model_no_index_temp`: model trained to reconstruct the monthly mean two-meter temperature without using WR indices
+    - `model_no_index_prec`: model trained to reconstruct the monthly total precipitation without using WR indices
+  - <b>ERA5 data:</b>
+    - `era5_daily_z500`: NetCDF file containing ERA5 daily geopotential height data at 500 hPa in the Euro-Atlantic region
+    - `era5_monthly_temp_anom`: NetCDF file containing ERA5 monthly two-meter temperature anomalies in Europe
+    - `era5_monthly_prec_anom`: NetCDF file containing ERA5 monthly total precipitation anomaly in Europe
+  - <b>SEAS5 data:</b>
+    - `seas5_monthly_temp_anom`: NetCDF file containing SEAS5 hindcast and forecast of motlhy mean two-meter temperature.
+    - `seas5_monthly_prec_anom`: NetCDF file containing SEAS5 hindcast and forecast of motlhy total precipitation.
+    - `Iwr_SEAS5`: NetCDF file containing the seven weather regime indices forecasted by SEAS5 (geopotential height at 500 hPa).
 
 Pretrained models can be found in 
   - <code>logs/t2m_ERA5/multiruns</code> for two-meter temperature
