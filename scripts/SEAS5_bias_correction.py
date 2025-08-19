@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from cmethods import adjust
-from xclim import sdba
+import xsdba
 
 # plotting
 import matplotlib.pyplot as plt
@@ -95,7 +95,7 @@ for forecastMonth in seas5_biased.forecastMonth.data:
     hindcast    = hindcast.sel(time=slice(None, args.bias_end))
 
     # bias correction of each ensemble member
-    QM = sdba.EmpiricalQuantileMapping.train(
+    QM = xsdba.EmpiricalQuantileMapping.train(
             observation, hindcast, nquantiles=10, group="time.month", kind="+"
     )
     adjusted = QM.adjust(forecast, extrapolation="constant", interp="linear").reindex(latitude=list(hindcast.latitude))
