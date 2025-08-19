@@ -17,12 +17,12 @@ clim_start="1981-01-01"
 clim_end="2010-12-31"
 
 # output paths
-era5_monthly_7wr=$HOME/anom_recon/seasonal/data/monthly_z500_7wr_noa_19400101-20241201.nc
+era5_monthly_7wr=$data_dir/monthly_z500_7wr_noa_19400101-20241201.nc
 era5_monthly_4wr_DJF="${era5_monthly_7wr/_7wr_/_4wr_DJF_}"
 era5_monthly_4wr_JJA="${era5_monthly_7wr/_7wr_/_4wr_JJA_}"
 era5_monthly_NAO_DJF="${era5_monthly_7wr/_7wr_/_NAO_DJF_}"
 era5_monthly_NAO_JJA="${era5_monthly_7wr/_7wr_/_NAO_JJA_}"
-seas5_monthly_7wr="$HOME/anom_recon/seasonal/data/SEAS5_monthly_z500_7wr_noa_bias1981-2010_201101-202412.nc"
+seas5_monthly_7wr="$data_dir/SEAS5_monthly_z500_7wr_noa_bias1981-2010_201101-202412.nc"
 
 # seven monthly WR indices from ERA5 daily mean geopotential height anomalies
 python monthly_weather_regimes_indices.py \
