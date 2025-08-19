@@ -1,0 +1,25 @@
+# venvs
+.venv/
+poetry.lock
+
+# data
+data/*.csv
+data/*.nc
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyc
+
+# logs
+logs/
+notebooks/lightning_logs
+
+# vs
+.vscode
+
+# post-processing and plots
+scripts/plots
+scripts/plots_bkp
+scripts/data
+scripts/models
