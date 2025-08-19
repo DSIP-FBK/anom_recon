@@ -41,27 +41,37 @@ For a detailed description of the folder structure refer to [lightning-hydra-tem
 ## 📄 Requirements:
 Experiments were run in a Python 3.12 environment with the following packages:
 
-  - numpy
-  - xarray
-  - netcdf4
-  - xeofs
-  - matplotlib
-  - torch
-  - lightning
-  - torchinfo
-  - hydra-core
-  - einops
-  - rootutils
-  - rich
-  - hydra-colorlog
+  - python = "^3.12"
+  - numpy = "^2.0.1"
+  - torch = "^2.4.0"
+  - lightning = "^2.3.3"
+  - xarray = "^2024.6.0"
+  - cfgrib = "^0.9.14.0"
+  - ipykernel = "^6.29.5"
+  - netcdf4 = "^1.7.1.post1"
+  - matplotlib = "^3.9.1"
+  - einops = "^0.8.0"
+  - torchinfo = "^1.8.0"
+  - hydra-core = "^1.3.2"
+  - rootutils = "^1.0.7"
+  - rich = "^13.7.1"
+  - hydra-colorlog = "^1.2.0"
+  - tensorboard = "^2.17.0"
+  - xeofs = "^3.0.2"
 
 
 ### 📦 Installation
 
+If python3.12 is not already installed in your system, you can install it by running the following command:
+
 ```bash
 # install python3.12 on ubuntu
 bash install_python_ubuntu.sh
+```
 
+I suggest to create a new environment:
+
+```bash
 # create environment with poetry
 bash create_environment.sh
 
@@ -96,12 +106,28 @@ To compute the anomalies, edit the scripts/compute_anomalies.sh with the paths t
   - `seas5_t2m_eu`: SEAS5 monthly forecast of two-meter temperature in Europe
   - `seas5_tp_eu`: SEAS5 monthly forecast of total precipitation in Europe
 
+The simply run:
+```bash
+cd scripts
+
+# compute the anomalies and save them in the data folder
+bash compute_anomalies.sh
+```
+
 ### Compute indices
 To compute the seven WR, four WR and NAO indices from the daily geopotential height anomalies, edit the paths in the `compute_z500_indices.py`:
 
   - `era5_daily_z500_anom`: ERA5 daily geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
   - `seas5_monthly_z500_anom`: SEAS5 monthly geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
 
+
+The simply run:
+```bash
+cd scripts
+
+# compute the indices and save them in the data folder
+bash compute_z500_indices.sh
+```
 
 ## 🤖 Train the model
 To train models for both temperature and precipitation reconstruction with the same hyperparameters used in the paper:
