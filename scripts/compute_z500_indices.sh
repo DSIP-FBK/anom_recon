@@ -1,12 +1,16 @@
 #!/usr/bin/bash
 set -e
 
-source "$HOME/anom_recon/seasonal/.venv/bin/activate"
+# set directories
+repo_dir=$(realpath "$(pwd)/..")
+data_dir=$(realpath "$(pwd)/../data")
 
+# load the environment
+source "$repo_dir/.venv/bin/activate"
 
 # define the paths to the NetCDF files
-era5_daily_z500_anom="$HOME/anom_recon/seasonal/data/daily_z500_anom_noa_19400101-20241231_regrid.nc"
-seas5_monthly_z500_anom="$HOME/anom_recon/data/SEAS5_z500_anom_noa_bias1981-2010_201101-202412.nc"
+era5_daily_z500_anom="$data_dir/daily_z500_anom_noa_19400101-20241231_regrid.nc"
+seas5_monthly_z500_anom="$data_dir/SEAS5_z500_anom_noa_bias1981-2010_201101-202412.nc"
 
 # climatology
 clim_start="1981-01-01"
