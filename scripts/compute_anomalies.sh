@@ -30,9 +30,9 @@ era5_monthly_z500_noa="${era5_z500_noa/daily/monthly}"
 era5_monthly_t2m_eu="${era5_t2m_eu/daily/monthly}"
 era5_monthly_tp_eu="${era5_tp_eu/daily/monthly}"
 
-seas5_z500_noa_bias="${seas5_z500_noa/_19810101-20241231_biased/_bias1981-2010_198101-202412}"
-seas5_t2m_eu_bias="${seas5_t2m_eu/_19810101-20241231_biased/_bias1981-2010_198101-202412}"
-seas5_tp_eu_bias="${seas5_tp_eu/_1981-2025/_bias1981-2010_198101-202412}"
+seas5_z500_noa_bias="${seas5_z500_noa/_19810101-20241231_biased/_bias1981-2010_201101-202412}"
+seas5_t2m_eu_bias="${seas5_t2m_eu/_19810101-20241231_biased/_bias1981-2010_201101-202412}"
+seas5_tp_eu_bias="${seas5_tp_eu/_1981-2025/_bias1981-2010_201101-202412}"
 
 seas5_z500_anom_noa_bias="${seas5_z500_noa_bias/z500_/z500_anom_}"
 seas5_t2m_anom_eu_bias="${seas5_t2m_eu_bias/t2m_/t2m_anom_}"
