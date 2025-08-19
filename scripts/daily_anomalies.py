@@ -1,6 +1,4 @@
 import argparse
-import numpy as np
-import pandas as pd
 import xarray as xr
 
 # custom functions
@@ -20,7 +18,7 @@ print('Reading NetCDF...', end='\r')
 da = xr.open_dataarray(args.file)
 
 if any([s in args.file for s in ('z500', 'geopotential')]):
-    da = da / g
+    da = da / g  # despite z500 in the name, the NetCDF files contain the geopotential
 
 print('Computing Anomalies...', end='\r')
 
