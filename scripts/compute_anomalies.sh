@@ -105,7 +105,7 @@ python SEAS5_bias_correction.py \
 # ------------------------------------------------
 # SEAS5 ANOMALIES
 # ------------------------------------------------
-# compute SEAS55 monthly geopotential heigh anomalies
+# compute SEAS55 monthly geopotential height anomalies
 python SEAS5_monthly_anomalies.py \
     --era5 $era5_z500_noa \
     --seas5 $seas5_z500_noa_bias \
@@ -121,7 +121,7 @@ python SEAS5_monthly_anomalies.py \
     --clim_start $clim_start \
     --clim_end $clim_end 
 
-# compute SEAS5 monthly precipitation temperature anomalies
+# compute SEAS5 monthly precipitation anomalies
 python SEAS5_monthly_anomalies.py \
     --era5 $era5_tp_eu \
     --seas5 $seas5_tp_eu_bias \
