@@ -26,6 +26,7 @@ xeofs = "^3.0.2"
 xclim = "^0.57.0"
 xsdba = "^0.5.0"
 cartopy = "^0.25.0"
+hydra-joblib-launcher = "^1.2.0"
 
 
 [build-system]
