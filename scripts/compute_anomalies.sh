@@ -1,16 +1,21 @@
 #!/usr/bin/bash
 set -e
 
-source "$HOME/anom_recon/seasonal/.venv/bin/activate"
+# set directories
+repo_dir=$(realpath "$(pwd)/..")
+data_dir=$(realpath "$(pwd)/../data")
+
+# load the environment
+source "$repo_dir/.venv/bin/activate"
 
 # define the paths to the NetCDF files
-era5_z500_noa="$HOME/anom_recon/ERA5/z500/noa/daily_z500_noa_19400101-20241231_regrid.nc"
-era5_t2m_eu="$HOME/anom_recon/ERA5/t2m/europe/daily_t2m_europe_19400101-20241231_regrid.nc"
-era5_tp_eu="$HOME/anom_recon/ERA5/tp/europe/daily_tp_europe_19400101-20241231_merged.nc"
+era5_z500_noa="$data_dir/daily_z500_noa_19400101-20241231_regrid.nc"
+era5_t2m_eu="$data_dir/daily_t2m_europe_19400101-20241231_regrid.nc"
+era5_tp_eu="$data_dir/daily_tp_europe_19400101-20241231_merged.nc"
 
-seas5_z500_noa="$HOME/anom_recon/SEAS5/SEAS5_z500_noa_19810101-20241231_biased.nc"
-seas5_t2m_eu="$HOME/anom_recon/SEAS5/SEAS5_t2m_europe_19810101-20241231_biased.nc"
-seas5_tp_eu="$HOME/anom_recon/SEAS5/SEAS5_tp_europe_1981-2025.nc"
+seas5_z500_noa="$data_dir/SEAS5_z500_noa_19810101-20241231_biased.nc"
+seas5_t2m_eu="$data_dir/SEAS5_t2m_europe_19810101-20241231_biased.nc"
+seas5_tp_eu="$data_dir/SEAS5_tp_europe_1981-2025.nc"
 
 # climatology
 clim_start="1981-01-01"
