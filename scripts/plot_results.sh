@@ -1,33 +1,39 @@
 #!/usr/bin/bash
 set -e
 
-source "/home/acamilletti/anom_recon/seasonal/.venv/bin/activate"
+# set directories
+repo_dir=$(realpath "$(pwd)/..")
+data_dir=$(realpath "$(pwd)/../data")
+log_dir=$(realpath "$(pwd)/../logs")
+
+# load the environment
+source "$repo_dir/.venv/bin/activate"
 
 start="2019"
 
-model_7wr_temp="${PWD}/${1}"  # path to the 7WR temperature model file                                                                                          
-model_7wr_prec="${PWD}/${2}"  # path to the 7WR precipitation model file
+model_7wr_temp="$log_dir/t2m_ERA5/7wr"  # path to the 7WR temperature model                                                                                          
+model_7wr_prec="$log_dir/tp_ERA5/7wr"   # path to the 7WR precipitation model
 
-model_4wr_temp_winter="${PWD}/${3}"  # path to the 4WR temperature model file (winter)
-model_4wr_temp_summer="${PWD}/${4}"  # path to the 4WR temperature model file (summer)
-model_4wr_prec_winter="${PWD}/${5}"  # path to the 4WR precipitation model file (winter)
-model_4wr_prec_summer="${PWD}/${6}"  # path to the 4WR precipitation model file (summer)
+model_4wr_temp_winter="$log_dir/t2m_ERA5/4wr_winter"  # path to the 4WR temperature model (winter)
+model_4wr_temp_summer="$log_dir/t2m_ERA5/4wr_summer"  # path to the 4WR temperature model (summer)
+model_4wr_prec_winter="$log_dir/tp_ERA5/4wr_winter"   # path to the 4WR precipitation model (winter)
+model_4wr_prec_summer="$log_dir/tp_ERA5/4wr_summer"   # path to the 4WR precipitation model (summer)
 
-model_NAO_temp_winter="${PWD}/${7}"   # path to the NAO temperature model file (winter)
-model_NAO_temp_summer="${PWD}/${8}"   # path to the NAO temperature model file (summer)
-model_NAO_prec_winter="${PWD}/${9}"   # path to the NAO precipitation model file (winter)
-model_NAO_prec_summer="${PWD}/${10}"  # path to the NAO precipitation model file (summer)
+model_NAO_temp_winter="$log_dir/t2m_ERA5/NAO_winter"  # path to the NAO temperature model (winter)
+model_NAO_temp_summer="$log_dir/t2m_ERA5/NAO_summer"  # path to the NAO temperature model (summer)
+model_NAO_prec_winter="$log_dir/tp_ERA5/NAO_winter"   # path to the NAO precipitation model (winter)
+model_NAO_prec_summer="$log_dir/t2m_ERA5/NAO_summer"  # path to the NAO precipitation model (summer)
 
-model_0wr_temp="${PWD}/${11}"  # path to the 0WR temperature model file
-model_0wr_prec="${PWD}/${12}"  # path to the 0WR precipitation model file
+model_0wr_temp="$log_dir/t2m_ERA5/0wr"  # path to the 0WR temperature model
+model_0wr_prec="$log_dir/tp_ERA5/0wr"   # path to the 0WR precipitation model
 
-ERA5_z500="${PWD}/${13}"       # path to the ERA5 daily z500    #../data/daily_z500_noa_19400101-20241231_regrid.nc
-ERA5_t2m="${PWD}/${14}"        # path to the ERA5 monthly t2m anomalies  #../data/monthly_t2m_anom_europe_19400101-20241231_regrid.nc
-ERA5_tp="${PWD}/${16}"         # path to the ERA5 monthly tp anomalies  #../data/monthly_tp_anom_europe_19400101-20241231_merged.nc
+ERA5_z500="$data_dir/daily_z500_noa_19400101-20241231_regrid.nc"          # path to the ERA5 daily z500
+ERA5_t2m="$data_dir/monthly_t2m_anom_europe_19400101-20241231_regrid.nc"  # path to the ERA5 monthly t2m anomalies
+ERA5_tp="$data_dir/monthly_tp_anom_europe_19400101-20241231_merged.nc"    # path to the ERA5 monthly tp anomalies
 
-seas5_temp="${PWD}/${16}"      # path to the SEAS5 monthly t2m anomalies  #../data/SEAS5_t2m_anom_europe_bias1981-2010_201101-202412.nc
-seas5_prec="${PWD}/${17}"      # path to the SEAS5 monthly tp anomalies   #../data/SEAS5_tp_anom_europe_bias1981-2010_201101-202412.nc
-Iwr_SEAS5="${PWD}/${18}"       # path to the SEAS5 monthly 7 WR indices   #../data/SEAS5_monthly_z500_7wr_noa_bias1981-2010_201101-202412.nc
+seas5_temp="$data_dir/SEAS5_t2m_anom_europe_bias1981-2010_201101-202412.nc"      # path to the SEAS5 monthly t2m anomalies
+seas5_prec="$data_dir/SEAS5_tp_anom_europe_bias1981-2010_201101-202412.nc"       # path to the SEAS5 monthly tp anomalies
+Iwr_SEAS5="$data_dir/SEAS5_monthly_z500_7wr_noa_bias1981-2010_201101-202412.nc"  # path to the SEAS5 monthly 7 WR indices
 
 
 # plot 7WR cluster means (Fig. 1)
