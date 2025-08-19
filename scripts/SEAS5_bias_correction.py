@@ -3,13 +3,6 @@ import pandas as pd
 import xarray as xr
 import xsdba
 
-# plotting
-import matplotlib.pyplot as plt
-from matplotlib.colors import Normalize
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from matplotlib.lines import Line2D
-import cartopy.crs as ccrs
-
 start_sec = time.time()
 
 # --------------------------------
