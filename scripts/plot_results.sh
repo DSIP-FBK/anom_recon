@@ -6,6 +6,9 @@ repo_dir=$(realpath "$(pwd)/..")
 data_dir=$(realpath "$(pwd)/../data")
 log_dir=$(realpath "$(pwd)/../logs")
 
+# create new dirs
+mkdir -p plots data
+
 # load the environment
 source "$repo_dir/.venv/bin/activate"
 
