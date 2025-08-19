@@ -99,7 +99,7 @@ or download the data manually from Zenodo (https://zenodo.org/records/16751720)
 The raw data in the Zenodo dataset must be preprocessed to obtain the anomalies and the indices used to train and validate the model.
 
 ### Compute anomalies
-To compute the anomalies, simply run:
+To compute the anomalies and bias-correct the SEAS5 forecast, simply run:
 
 ```bash
 cd scripts
@@ -108,8 +108,11 @@ cd scripts
 bash compute_anomalies.sh
 ```
 
+The bias correction will take several minutes.
+
 ### Compute indices
 To compute the seven WR, four WR and NAO indices from the daily geopotential height anomalies, run:
+
 ```bash
 cd scripts
 
