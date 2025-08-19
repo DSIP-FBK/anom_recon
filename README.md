@@ -58,6 +58,9 @@ Experiments were run in a Python 3.12 environment with the following packages:
   - hydra-colorlog = "^1.2.0"
   - tensorboard = "^2.17.0"
   - xeofs = "^3.0.2"
+  - xclim = "^0.57.0"
+  - xsdba = "^0.5.0"
+  - cartopy = "^0.25.0"
 
 
 ### 📦 Installation
@@ -96,17 +99,8 @@ or download the data manually from Zenodo (https://zenodo.org/records/16751720)
 The raw data in the Zenodo dataset must be preprocessed to obtain the anomalies and the indices used to train and validate the model.
 
 ### Compute anomalies
-To compute the anomalies, edit the scripts/compute_anomalies.sh with the paths to the NetCDF files containing the relevant data:
+To compute the anomalies, simply run:
 
-  - `era5_z500_noa`: ERA5 daily geopotential height at 500 hPa in the Euro-Atlantic region.
-  - `era5_t2m_eu`: ERA5 daily two-meter temperature in Europe
-  - `era5_tp_eu`: ERA5 daily total precipitation in Europe
-
-  - `seas5_z500_noa`: SEAS5 monthly forecast of geopotential height ad 500 hPa in the Euro-Atlantic sector
-  - `seas5_t2m_eu`: SEAS5 monthly forecast of two-meter temperature in Europe
-  - `seas5_tp_eu`: SEAS5 monthly forecast of total precipitation in Europe
-
-The simply run:
 ```bash
 cd scripts
 
@@ -115,13 +109,7 @@ bash compute_anomalies.sh
 ```
 
 ### Compute indices
-To compute the seven WR, four WR and NAO indices from the daily geopotential height anomalies, edit the paths in the `compute_z500_indices.py`:
-
-  - `era5_daily_z500_anom`: ERA5 daily geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
-  - `seas5_monthly_z500_anom`: SEAS5 monthly geopotential height anomalies at 500 hPa in the Euro-Atlantic sector
-
-
-The simply run:
+To compute the seven WR, four WR and NAO indices from the daily geopotential height anomalies, run:
 ```bash
 cd scripts
 
