@@ -1,4 +1,6 @@
 # @package _global_
+defaults:
+  - /paths/default
 
 tags: ["noa_1940_2024_4wr", "winter"]
 
@@ -7,7 +9,14 @@ seed: 42
 trainer:
   precision: 16-mixed
 
-task_name: tp_ERA5_DJF
+task_name: tp_ERA5
+
+hydra:
+  run:
+    dir: ${paths.log_dir}/${task_name}/4wr_winter
+  sweep:
+    dir: ${paths.log_dir}/${task_name}/4wr_winter
+    subdir: ${hydra.job.num}
 
 data:
   indexes_paths: 

@@ -1,4 +1,6 @@
 # @package _global_
+defaults:
+  - /paths/default
 
 tags: ["noa_1940_2024_0wr"]
 
@@ -9,9 +11,16 @@ trainer:
 
 task_name: tp_ERA5
 
+hydra:
+  run:
+    dir: ${paths.log_dir}/${task_name}/0wr
+  sweep:
+    dir: ${paths.log_dir}/${task_name}/0wr
+    subdir: ${hydra.job.num}
+
 data:
   indexes_paths: 
-    - ${paths.data_dir}/monthly_z500_2wr_noa_19400101-20241201.nc
+    - ${paths.data_dir}/monthly_z500_7wr_noa_19400101-20241201.nc  # whatever: num_indexes is zero!
   anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_merged.nc
   months: []
   num_indexes:
