@@ -31,11 +31,15 @@ no_regime_anom = xr.open_dataarray(f'data/{n_clusters}clusters_no_regime_anom_{a
 # Plot clusters mean
 # ------------------
 print('Plotting clusters mean...')
-order = (0,1,2,3)  # adapt the order of the WR to match the title
-# textwidth = 509  # QJRMS
-# columnwidth = 248.9  # QJRMS
-textwidth = 405  # IJC
-columnwidth = 196.1  # IJC
+order_winter = (0,1,2,3)  # adapt the order of the WR to match the title
+order_summer = (3,1,2,0)
+if args.season == 'DJF':
+    order = order_winter
+elif args.season == 'JJA':
+    order = order_summer
+
+textwidth = 405
+columnwidth = 196.1
 fig, axs = plt.subplots(2, 2, figsize=set_figsize(columnwidth, .85, subplots=(2,2)),
                         sharex=True, sharey=True, layout="constrained",
                         gridspec_kw={'wspace': 0, 'hspace': 0},
@@ -90,7 +94,7 @@ cax.set_xticks(cax_ticks)
 if args.season == 'DJF':
     titles = ['Atlantic Ridge \n(AT)', 'Scandinavian Blocking \n(ScBL)', 'Zonal Regime \n(ZO)', 'Greenland Blocking \n(GL)']
 elif args.season == 'JJA':
-    titles = ['NAO-\n', 'Scandinavian Blocking \n(ScBL)', 'Zonal Regime \n(ZO)', 'Atlantic Ridge \n(AT)']
+    titles = ['Atlantic Ridge \n(AT)', 'Scandinavian Blocking \n(ScBL)', 'Zonal Regime \n(ZO)', 'Greenland Blocking \n(GL)']
 axs[0,0].set_title(titles[0], fontsize=fs)
 axs[0,1].set_title(titles[1], fontsize=fs)
 axs[1,0].set_title(titles[2], fontsize=fs)
