@@ -4,7 +4,6 @@ import xarray as xr
 
 # plotting
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Patch
 
 # custom functions
