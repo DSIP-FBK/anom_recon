@@ -44,7 +44,7 @@ def low_pass_weights(window, cutoff):
 # ------------------------------------------------
 
 def get_torch_models_infos(folder_path):
-    PROJECT_ROOT = '..'#'/home/acamilletti/anom_recon/seasonal'
+    PROJECT_ROOT = '..'
     folder_path  = os.path.expanduser(folder_path)
     ckpt         = glob.glob(f'{folder_path}/?/checkpoints/epoch_???.ckpt')
     n_models     = len(ckpt)
@@ -61,16 +61,17 @@ def get_torch_models_infos(folder_path):
         months             = config['data']['months']
         train_last_date    = config['data']['train_last_date']
 
-        datamodule = AnomReconDataModule(
-            indexes_paths=indexes_paths,
-            anomalies_path=anomalies_path,
-            land_sea_mask_path=land_sea_mask_path,
-            orography_path=orography_path,
-            months=months,
-            num_indexes=num_indexes,
-            train_last_date=train_last_date,
-            )
-        datamodule.setup(stage='test')
+        if i == 0:
+            datamodule = AnomReconDataModule(
+                indexes_paths=indexes_paths,
+                anomalies_path=anomalies_path,
+                land_sea_mask_path=land_sea_mask_path,
+                orography_path=orography_path,
+                months=months,
+                num_indexes=num_indexes,
+                train_last_date=train_last_date,
+                )
+            datamodule.setup(stage='test')
         
         models.append(
             AnomReconModule.load_from_checkpoint(
