@@ -12,7 +12,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """
-Script for plotting the WR (cluster means) for the climatology period.
+Script for computing the WR (cluster means) in the climatology period.
 """
 
 # arguments
@@ -34,7 +34,7 @@ clim_end          = '2010-12-31' #'2015-12-31' # Grams et. al
 lat_min, lat_max = 30, 90   # Grams et. al
 lon_min, lon_max = -80, 40  # Grams et. al
 
-# graviational acceleration
+# gravitational acceleration
 g = 9.80665  # m s^-2
 
 
@@ -117,12 +117,13 @@ Iwr = (Pwr - Pwr_avg) / Pwr_std
 Iwr = Iwr.T
 
 # select climatology season
+# note: while the WR can be computed ANN, the cluster mean are computed seasonally (for plotting)
 if args.season == 'DJF' or args.season == 'ANN':
     season = 'DJF'
     months = (12,1,2)
 elif args.season == 'JJA':
     season = 'JJA'
-months = (6,7,8)
+    months = (6,7,8)
 z500_season = z500[np.isin(z500.time.dt.month, months)]
 anom_filtered_season = anom_filtered[np.isin(anom_filtered.time.dt.month, months)]
 
