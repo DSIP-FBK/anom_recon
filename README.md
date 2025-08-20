@@ -61,6 +61,7 @@ Experiments were run in a Python 3.12 environment with the following packages:
   - xclim = "^0.57.0"
   - xsdba = "^0.5.0"
   - cartopy = "^0.25.0"
+  - hydra-joblib-launcher = "^1.2.0"
 
 
 ### 📦 Installation
