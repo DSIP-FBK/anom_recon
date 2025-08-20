@@ -25,9 +25,8 @@ no_regime_anom = xr.open_dataarray(f'data/{n_clusters}clusters_no_regime_anom_DJ
 # Plot clusters mean
 # ------------------
 print('Plotting clusters mean...')
-order = (0,1,2,3,4,5,6)  # adapt the order of the WR to match the title
-#textwidth = 509  # QJRMS
-textwidth = 405  # IJC
+order = (3,4,5,2,1,0,6)  # adapt the order of the WR to match the title
+textwidth = 405
 fig, axs = plt.subplots(2, 4, figsize=set_figsize(textwidth, .85, subplots=(2,4)),
                         sharex=True, sharey=True, layout="constrained",
                         gridspec_kw={'wspace': 0, 'hspace': 0},
