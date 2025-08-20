@@ -80,7 +80,7 @@ Pwr_std = Pwr.sel(time=slice(args.clim_start, args.clim_end)).std()
 Iwr = (Pwr - Pwr_avg) / Pwr_std
 
 # resample
-Iwr_monthly = Iwr.resample(time='MS').mean()
+Iwr_monthly = Iwr.resample(time='MS').mean().dropna(dim='time')  # resampling create nan where month not in season
 
 # shift cid and rename to mode for compatibility with pca
 Iwr_monthly['cid'] = Iwr_monthly['cid'] + 1

@@ -49,7 +49,7 @@ z500_pca = eof.transform(anom, normalized=False)
 z500_pca = (z500_pca - z500_clim_pca.mean()) / z500_clim_pca.std()
 
 # resample
-z500_pca_monthly = z500_pca.resample(time='MS').mean()
+z500_pca_monthly = z500_pca.resample(time='MS').mean().dropna(dim='time')  # resampling create nan where month not in season
 
 # save
 print('Saving...')
