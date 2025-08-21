@@ -41,8 +41,6 @@ class AnomReconDataModule(LightningDataModule):
                 orography_path=self.hparams.orography_path,
                 num_indexes=self.hparams.num_indexes,
                 num_pca=self.hparams.num_pca,
-                train_last_date=self.hparams.train_last_date,
-                val_last_date=self.hparams.val_last_date
             )
 
             time = dataset.anomalies.time
