@@ -60,6 +60,7 @@ def get_torch_models_infos(folder_path):
         num_indexes        = config['data']['num_indexes']
         months             = config['data']['months']
         train_last_date    = config['data']['train_last_date']
+        val_last_date      = config['data']['val_last_date']
 
         if i == 0:
             datamodule = AnomReconDataModule(
@@ -70,6 +71,7 @@ def get_torch_models_infos(folder_path):
                 months=months,
                 num_indexes=num_indexes,
                 train_last_date=train_last_date,
+                val_last_date=val_last_date,
                 )
             datamodule.setup(stage='test')
         
