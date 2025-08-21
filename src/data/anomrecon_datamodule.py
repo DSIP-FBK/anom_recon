@@ -20,6 +20,7 @@ class AnomReconDataModule(LightningDataModule):
             num_indexes: list = [15,],
             num_pca: int = 0,
             train_last_date: str = '2010-12-01',
+            val_last_date: str = '2014-12-01',
             batch_size: int = 1,
             num_workers: int = 1,
             )-> None:
@@ -40,11 +41,13 @@ class AnomReconDataModule(LightningDataModule):
                 orography_path=self.hparams.orography_path,
                 num_indexes=self.hparams.num_indexes,
                 num_pca=self.hparams.num_pca,
-                train_last_date=self.hparams.train_last_date
+                train_last_date=self.hparams.train_last_date,
+                val_last_date=self.hparams.val_last_date
             )
 
             time = dataset.anomalies.time
             train_last_date = pd.to_datetime(self.hparams.train_last_date, format='%Y-%m-%d')
+            val_last_date   = pd.to_datetime(self.hparams.val_last_date, format='%Y-%m-%d')
             
             train_start_idx = 0
             train_end_idx   = sum(time.data <= train_last_date)
@@ -60,9 +63,8 @@ class AnomReconDataModule(LightningDataModule):
                 indices=train_indexes
             )
 
-            val_length    = (len(time) - train_end_idx) // 2
             val_start_idx = train_end_idx
-            val_end_idx   = val_start_idx + val_length
+            val_end_idx   = sum(time.data <= val_last_date)
             val_indexes   = np.arange(
                 val_start_idx,
                 val_end_idx

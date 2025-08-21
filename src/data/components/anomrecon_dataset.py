@@ -17,7 +17,6 @@ class IndexAnomaly(Dataset):
             orography_path: str,
             num_indexes: list,
             num_pca: int,
-            train_last_date: str
             ):
         self.indexes_paths = indexes_paths
         self.anomalies_path = anomalies_path
@@ -25,7 +24,6 @@ class IndexAnomaly(Dataset):
         self.orography_path = orography_path
         self.num_indexes = num_indexes
         self.num_pca = num_pca
-        self.train_last_date = train_last_date
 
         # --------
         # indexes
@@ -40,27 +38,18 @@ class IndexAnomaly(Dataset):
         self.indexes = xr.concat(indexes_list, dim='mode', coords='minimal', compat='override')
         self.indexes['mode'] = np.arange(1, np.sum(num_indexes) + 1)
 
-        # nan to zero
-        # self.indexes = self.indexes.fillna(0)
-
-        # normalize indexes (on the training set only)
-        # self.indexes = (self.indexes - self.indexes.sel(time=slice(None, train_last_date)).mean()) #/ self.indexes.sel(time=slice(None, train_last_date).std()
-
         # ----------
         # anomalies
         # ----------
         self.anomalies = xr.open_dataarray(anomalies_path, engine='netcdf4')
 
-        # normalize anomalies (on the training set only)
-        # self.anomalies = self.anomalies - self.anomalies.sel(time=slice(None, train_last_date)).mean() #/ self.anomalies.std()
-        
         # reduce to common time
         self.start     = max(self.indexes.time.min(), self.anomalies.time.min())
         self.end       = min(self.indexes.time.max(), self.anomalies.time.max())
         self.indexes   = self.indexes.sel(time=slice(self.start, self.end))
         self.anomalies = self.anomalies.sel(time=slice(self.start, self.end))
         
-        # latitude, longitude and static data
+        # static data
         self.static_data = self.get_static()
 
 
