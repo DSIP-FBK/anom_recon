@@ -20,7 +20,6 @@ def plot_boxplot(ax, data, position, color, marker):
         patch_artist=True,
         showmeans=False, boxprops={'color': color},
         medianprops={'linewidth': 1, 'color': color}, 
-        #medianprops={'marker': marker, 'markeredgecolor': color, 'markerfacecolor': color, 'markersize': 4}, 
         showfliers=False,
         whiskerprops={'color': color}, capprops = {'color': color},
         widths=[1,]
