@@ -26,3 +26,4 @@ data:
   num_indexes:
     - 0
   train_last_date: '2010-12-31'
+  val_last_date: '2014-12-31'
