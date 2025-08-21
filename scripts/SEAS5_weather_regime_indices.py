@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-import pandas as pd
 import xarray as xr
 import xeofs as xe
 from sklearn.cluster import KMeans
