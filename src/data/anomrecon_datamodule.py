@@ -41,6 +41,7 @@ class AnomReconDataModule(LightningDataModule):
                 orography_path=self.hparams.orography_path,
                 num_indexes=self.hparams.num_indexes,
                 num_pca=self.hparams.num_pca,
+                months=self.hparams.months,
             )
 
             time = dataset.anomalies.time
@@ -53,8 +54,6 @@ class AnomReconDataModule(LightningDataModule):
                 train_start_idx,
                 train_end_idx
             )
-            if self.hparams.months != []:
-                train_indexes = train_indexes[np.isin(time[train_indexes].dt.month, self.hparams.months)]
 
             self.data_train = torch.utils.data.Subset(
                 dataset=dataset,
@@ -67,8 +66,6 @@ class AnomReconDataModule(LightningDataModule):
                 val_start_idx,
                 val_end_idx
             )
-            if self.hparams.months != []:
-                val_indexes = val_indexes[np.isin(time[val_indexes].dt.month, self.hparams.months)]
             
             self.data_val = torch.utils.data.Subset(
                 dataset=dataset,
@@ -81,8 +78,6 @@ class AnomReconDataModule(LightningDataModule):
                 test_start_idx,
                 test_end_idx
             )
-            if self.hparams.months != []:
-                test_indexes = test_indexes[np.isin(time[test_indexes].dt.month, self.hparams.months)]
             
             self.data_test = torch.utils.data.Subset(
                 dataset=dataset,

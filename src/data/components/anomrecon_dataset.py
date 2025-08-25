@@ -17,6 +17,7 @@ class IndexAnomaly(Dataset):
             orography_path: str,
             num_indexes: list,
             num_pca: int,
+            months: list = [],
             ):
         self.indexes_paths = indexes_paths
         self.anomalies_path = anomalies_path
@@ -48,6 +49,11 @@ class IndexAnomaly(Dataset):
         self.end       = min(self.indexes.time.max(), self.anomalies.time.max())
         self.indexes   = self.indexes.sel(time=slice(self.start, self.end))
         self.anomalies = self.anomalies.sel(time=slice(self.start, self.end))
+
+        # filter by month
+        if months:
+            self.indexes   = self.indexes[:, np.isin(self.indexes.time.dt.month, months)]
+            self.anomalies = self.anomalies[np.isin(self.anomalies.time.dt.month, months)]
         
         # static data
         self.static_data = self.get_static()
