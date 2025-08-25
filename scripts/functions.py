@@ -85,12 +85,11 @@ def get_torch_models_infos(folder_path):
     return models, datamodule, config
 
 def get_models_inputs(datamodule, start_year):
-    concat_dset = torch.utils.data.ConcatDataset((datamodule.data_train, datamodule.data_val, datamodule.data_test))
-    years  = [concat_dset[i][0][0] for i in range(len(concat_dset))]
-    months = [concat_dset[i][0][1] for i in range(len(concat_dset))]
+    years  = [datamodule.data_test[i][0][0] for i in range(len(datamodule.data_test))]
+    months = [datamodule.data_test[i][0][1] for i in range(len(datamodule.data_test))]
     #days   = [pd.Period('%d-%d' % (z[0] + start_year, z[1])).days_in_month for z in zip(years, months)]
     days   = 1
-    static_data = concat_dset[0][0][3]
+    static_data = datamodule.data_test[0][0][3]
 
     times = pd.to_datetime(
         pd.DataFrame(
@@ -161,12 +160,11 @@ def get_perturbed_models_out(models, pert_idxs, anom, datamodule, start_year=194
     return model_out.dropna(dim='time')
 
 def models_with_SEAS5_indexes(models, seas5_idxs, anom, datamodule, start_year=1940):
-    years, months, times, static_data = get_models_inputs(datamodule, start_year)
 
     models_seas5_index = xr.DataArray(
         dims=['time', 'lat', 'lon', 'forecastMonth', 'ensemble_member', 'number'],
         coords=dict(
-            time=times,
+            time=anom.time,
             lat=anom.lat,
             lon=anom.lon,
             forecastMonth=seas5_idxs.forecastMonth,
