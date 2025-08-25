@@ -13,10 +13,11 @@ warnings.filterwarnings("ignore")
 # arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--Iwr_SEAS5", type=str, help="path to the NetCDF containing the WR index computed from SEAS5 forecasts")
-parser.add_argument("--seas5_temp", type=str, help="path to the NetCDF containing the SEAS5 temperature normalized anomalies forecasts" )
-parser.add_argument("--seas5_prec", type=str, help="path to the NetCDF containing the SEAS5 precipitation normalized anomalies forecasts" )
-parser.add_argument("--model_temp", type=str, help="path to the folder containing the model trained on temperature" )
-parser.add_argument("--model_prec", type=str, help="path to the folder containing the model trained on precipitation" )
+parser.add_argument("--seas5_temp", type=str, help="path to the NetCDF containing the SEAS5 temperature normalized anomalies forecasts")
+parser.add_argument("--seas5_prec", type=str, help="path to the NetCDF containing the SEAS5 precipitation normalized anomalies forecasts")
+parser.add_argument("--model_temp", type=str, help="path to the folder containing the model trained on temperature")
+parser.add_argument("--model_prec", type=str, help="path to the folder containing the model trained on precipitation")
+parser.add_argument("--start", type=str, help="start date of the analysis")
 args = parser.parse_args()
 
 # seasons
@@ -43,7 +44,5 @@ anomP                = xr.open_dataarray(config['data']['anomalies_path']).renam
 model_seas5_7wrP     = models_with_SEAS5_indexes(torch_models, idxs_seas5_7wr, anomP, datamodule)
 
 # save
-#anomT.to_netcdf(f'data/anomT.nc')
-#anomP.to_netcdf(f'data/anomP.nc')
-model_seas5_7wrT.to_netcdf(f'data/model_seas5_7wrT.nc')
-model_seas5_7wrP.to_netcdf(f'data/model_seas5_7wrP.nc')
+model_seas5_7wrT.to_netcdf(f'data/model_seas5_7wrT_{args.start}.nc')
+model_seas5_7wrP.to_netcdf(f'data/model_seas5_7wrP_{args.start}.nc')
