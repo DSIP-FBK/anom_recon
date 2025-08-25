@@ -15,14 +15,14 @@ parser.add_argument("--era5_anom", help="path to NetCDF file containing the ERA5
 parser.add_argument("--seas5_anom", help="path to NetCDF file containing the SEAS5 monthly anomalies" )
 parser.add_argument("--clim_start", help="(str) start date of the climatology period (e.g. 1981-01-01)")
 parser.add_argument("--clim_end", help="(str) end date of the climatology period (e.g. 2010-12-31)")
+parser.add_argument("--clusters", default=7, type=int, help="(int) number of clusters to use (default = 7)")
 parser.add_argument("--out", help="path and name of the output NetCDF file" )
 args = parser.parse_args()
 
 # parameters
 n_eof             = 7
 n_eofs_for_kmeans = 7
-n_clusters        = 7
-random_state      = 42  # to preserve WR ordering
+n_clusters        = args.clusters
 lat_min, lat_max  = 30, 90   # Grams et. al
 lon_min, lon_max  = -80, 40  # Grams et. al
 
@@ -31,35 +31,8 @@ print('Reading NetCDF...')
 era5_anom_clim = xr.open_dataarray(args.era5_anom).sel(latitude=slice(lat_max, lat_min), longitude=slice(lon_min, lon_max), time=slice(args.clim_start, args.clim_end))
 # seas5 anomalies
 seas5_anom = xr.open_dataarray(args.seas5_anom).sel(number=slice(None, 24), latitude=slice(lat_max, lat_min), longitude=slice(lon_min, lon_max))
-
-
-# --------------------
-# ERA5 Weather Regimes
-# --------------------
-print('EOF on the ERA5 climatology period...')
-eof = xe.single.EOF(n_modes=n_eof, use_coslat=True, random_state=random_state)
-eof.fit(era5_anom_clim, dim="time")
-clim_eof = eof.components(normalized=False)
-clim_pc  = eof.scores(normalized=False)
-
-var = eof.explained_variance_ratio()
-print('  explained variance: %.2f' % (np.cumsum(var)[-1] * 100))
-
-# K-means clustering of climatology PC
-print('K-means clustering of ERA5 PCs (clim period)...')
-km = KMeans(n_clusters=n_clusters, n_init=500, verbose=0, tol=1e-6, max_iter=5000, random_state=random_state)
-km.fit(clim_pc.sel(mode=slice(1, n_eofs_for_kmeans)).T)
-
-print('Computing ERA5 weather regimes')
-# cluster id
-cid = xr.DataArray(
-    name='cid',
-    dims=['time'],
-    coords=dict(
-        time=clim_pc.time,
-    ),
-    data=km.predict(clim_pc.sel(mode=slice(1, n_eofs_for_kmeans)).T)
-)
+# clustering
+cid = xr.open_dataarray(f'data/{n_clusters}_ANN_{args.clim_start}-{args.clim_end}_clusters.nc').sel(time=slice(args.clim_start, args.clim_end))
 
 # era5 mean cluster centers
 era5_clim_wr = era5_anom_clim.groupby(cid).mean(dim='time')

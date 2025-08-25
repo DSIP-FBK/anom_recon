@@ -39,8 +39,8 @@ anom_clim = anom.sel(time=slice(args.clim_start, args.clim_end))
 print('EOF on the ERA5 climatology period...')
 eof = xe.single.EOF(n_modes=n_eof, use_coslat=True, random_state=random_state)
 eof.fit(anom_clim, dim="time")
-clim_eof = eof.components(normalized=False)
-clim_pc  = eof.scores(normalized=False)
+clim_pc = eof.scores(normalized=False)
+pc = eof.transform(anom, normalized=False)
 
 var = eof.explained_variance_ratio()
 print('  explained variance: %.2f' % (np.cumsum(var)[-1] * 100))
@@ -55,14 +55,18 @@ cid = xr.DataArray(
     name='cid',
     dims=['time'],
     coords=dict(
-        time=clim_pc.time,
+        time=pc.time,
     ),
-    data=km.predict(clim_pc.sel(mode=slice(1, n_eofs_for_kmeans)).T)
+    data=km.predict(pc.sel(mode=slice(1, n_eofs_for_kmeans)).T)
 )
+
+# save the clusterization for future usage
+cid.to_netcdf(f'data/{n_clusters}_{args.season}_{args.clim_start}-{args.clim_end}_clusters.nc')
 
 # compute the cluster centroids (i.e. the weather regimes)
 print('Computing cluster centroids...')
-clim_wr = anom_clim.groupby(cid).mean(dim='time')
+clim_cid = cid.sel(time=slice(args.clim_start, args.clim_end))
+clim_wr  = anom_clim.groupby(clim_cid).mean(dim='time')
 
 # weather regime index
 print('WR index computation...')
