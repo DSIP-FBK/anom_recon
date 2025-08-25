@@ -13,8 +13,8 @@ era5_daily_z500_anom="$data_dir/daily_z500_anom_noa_19400101-20241231_regrid.nc"
 seas5_monthly_z500_anom="$data_dir/SEAS5_z500_anom_noa_bias1981-2010_201101-202412.nc"
 
 # climatology
-clim_start="1981-01-01"
-clim_end="2010-12-31"
+clim_start="1981"
+clim_end="2010"
 
 # output paths
 era5_monthly_7wr=$data_dir/monthly_z500_7wr_noa_19400101-20241201.nc
