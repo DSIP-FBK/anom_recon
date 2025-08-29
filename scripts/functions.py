@@ -240,6 +240,69 @@ def get_SEAS5_season(seas5_anom, season):
     return xr.concat((seas5_month1, seas5_month2, seas5_month3), dim='time').sortby('time')
 
 
+
+# ------------------------------------------------
+# Composite Model
+# ------------------------------------------------
+def life_cicle_monthly_mask(Iwr, clim_start, clim_end):
+    n_clusters = len(Iwr.mode)
+    std = Iwr.sel(time=slice(clim_start, clim_end)).std(dim='time')  # reference std
+    cond1 = np.zeros((Iwr.shape), dtype=bool)
+    for i in range(n_clusters):
+        cond1[i] = (Iwr[i] > Iwr[np.delete(np.arange(n_clusters), i)]).all(dim='mode')
+    cond2 = (
+        ((Iwr > std) & cond1)
+        )
+
+    mask = cond1 & cond2
+    return mask
+
+def get_composite(var, mask, clim_start, clim_end):
+    n_clusters = len(mask.mode)
+    var_clim   = var.sel(time=slice(clim_start, clim_end))
+    mask_clim  = mask.sel(time=slice(clim_start, clim_end))
+
+    cluster_composite = xr.DataArray(
+        dims=['mode', 'lat', 'lon'],
+        coords=dict(
+            mode=mask.mode,
+            lat=var.lat,
+            lon=var.lon
+        )
+    )
+
+    # apply mask for each cluster
+    for c in range(n_clusters): 
+        cluster_composite[dict(mode=c)] = var_clim[mask_clim[c,:]].mean(dim='time')
+
+    # no regime
+    no_regime_temp_anom = var_clim[(~mask_clim).all(dim='mode')].mean(dim='time')
+
+    return cluster_composite, no_regime_temp_anom
+
+
+def get_composite_recon(var, Iwr, clim_start, clim_end, months=None):
+    # select season
+    if months:
+        var = var[np.isin(var.time.dt.month, months)]
+        Iwr = Iwr[:, np.isin(Iwr.time.dt.month, months)]
+
+    # life-cicle monthly mask for WR attribution
+    life_cicle_mask = life_cicle_monthly_mask(Iwr, clim_start, clim_end)
+
+    # compute temperature and precipitation composite for each WR and no WR class
+    composite, no_regime = get_composite(var, life_cicle_mask, clim_start, clim_end)
+
+    # use the composite to provide reconstruction
+    composite_recon = xr.where(
+        life_cicle_mask.any(dim='mode'),
+        (composite * life_cicle_mask).sum(dim='mode'),
+        no_regime
+    )
+
+    return composite_recon
+
+
 # ------------------------------------------------
 # Skills
 # ------------------------------------------------
