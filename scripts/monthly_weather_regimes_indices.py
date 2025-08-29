@@ -78,12 +78,15 @@ Pwr_avg = Pwr.sel(time=slice(args.clim_start, args.clim_end)).mean(dim='time')
 Pwr_std = Pwr.sel(time=slice(args.clim_start, args.clim_end)).std(dim='time')
 Iwr = (Pwr - Pwr_avg) / Pwr_std
 
+# shift cid and rename to mode for compatibility with pca
+Iwr['cid'] = Iwr['cid'] + 1
+Iwr = Iwr.rename({'cid': 'mode'})
+
+# save daily
+Iwr.to_netcdf(args.out.replace('monthly', 'daily'), mode='w')
+
 # resample
 Iwr_monthly = Iwr.resample(time='MS').mean().dropna(dim='time')  # resampling create nan where month not in season
-
-# shift cid and rename to mode for compatibility with pca
-Iwr_monthly['cid'] = Iwr_monthly['cid'] + 1
-Iwr_monthly = Iwr_monthly.rename({'cid': 'mode'})
 
 # save
 print('Saving...')
