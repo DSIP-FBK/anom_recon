@@ -23,7 +23,9 @@ if any([s in args.file for s in ('z500', 'geopotential')]):
 print('Computing Anomalies...', end='\r')
 
 # calendar day climatology
-cal_clim = da.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+cal_clim = da.sel(time=slice(args.clim_start, args.clim_end))\
+    .groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap')\
+        .rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
 # anomalies 
 anom = da.groupby('time.dayofyear') - cal_clim
 
@@ -33,13 +35,17 @@ wgts = xr.DataArray(
     low_pass_weights(window, 1. / 10.),
     dims=['window']
     )
-anom_filtered = anom.pad(time=15, mode='wrap').rolling(time=window, center=True).construct('window').dot(wgts).dropna(dim='time')
+anom_filtered = anom.pad(time=15, mode='wrap')\
+    .rolling(time=window, center=True)\
+        .construct('window').dot(wgts).dropna(dim='time')
 
 # calendar day standard deviation
-cal_31day_std = anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+cal_std = anom_filtered.sel(time=slice(args.clim_start, args.clim_end))\
+    .groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap')\
+        .rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
 
 # normalized anomalies
-anom_norm = anom_filtered.groupby('time.dayofyear') / cal_31day_std.mean(dim=['latitude', 'longitude'])
+anom_norm = anom_filtered.groupby('time.dayofyear') / cal_std.mean(dim=['latitude', 'longitude'])
 
 # save file
 print('Saving...', end='\r')
