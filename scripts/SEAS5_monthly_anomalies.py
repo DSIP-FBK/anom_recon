@@ -21,9 +21,6 @@ seas5 = xr.open_dataarray(args.seas5).sel(latitude=slice(None, 30), longitude=sl
 print('Computing climatology...')
 # calendar day climatology
 cal_clim = era5.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
-cal_clim_monthly = cal_clim.coarsen(dayofyear=30, boundary='trim').mean()
-cal_clim_monthly = cal_clim_monthly.rename({'dayofyear': 'month'})
-cal_clim_monthly['month'] = np.arange(1, 13)
 
 print('Computing normalization...')
 # anomalies 
@@ -39,9 +36,20 @@ era5_anom_filtered = era5_anom.pad(time=15, mode='wrap').rolling(time=window, ce
 
 # calendar day standard deviation
 cal_std = era5_anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
-cal_std_monthly = cal_std.coarsen(dayofyear=30, boundary='trim').mean()
-cal_std_monthly = cal_std_monthly.rename({'dayofyear': 'month'})
-cal_std_monthly['month'] = np.arange(1, 13)
+
+# monthly climatology mean and standard deviation
+# cal_clim_monthly = cal_clim.coarsen(dayofyear=30, boundary='trim').mean()
+# cal_clim_monthly = cal_clim_monthly.rename({'dayofyear': 'month'})
+# cal_clim_monthly['month'] = np.arange(1, 13)
+
+# cal_std_monthly = cal_std.coarsen(dayofyear=30, boundary='trim').mean()
+# cal_std_monthly = cal_std_monthly.rename({'dayofyear': 'month'})
+# cal_std_monthly['month'] = np.arange(1, 13)
+date = pd.to_datetime(["2000"] * cal_clim.dayofyear.size, format="%Y") \
+       + pd.to_timedelta(cal_clim.dayofyear.values - 1, unit="D")
+
+cal_clim_monthly = cal_clim.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
+cal_std_monthly  = cal_std.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
 
 # --------------------------------
 # Compute SEAS5 biased anomalies
