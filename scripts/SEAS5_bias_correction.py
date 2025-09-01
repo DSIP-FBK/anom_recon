@@ -44,6 +44,10 @@ seas5_biased.name = var_name
 era5 = era5.assign_attrs({'units': ''})
 seas5_biased = seas5_biased.assign_attrs({'units': ''})
 
+# activate dusk
+era5 = era5.chunk({"latitude": 20, "longitude": 20})
+seas5_biased = seas5_biased.chunk({"latitude": 20, "longitude": 20, "number": 5})
+
 # --------------------------------
 # SEAS5 bias correction
 #---------------------------------
@@ -78,16 +82,16 @@ for forecastMonth in seas5_biased.forecastMonth.data:
     # shift hindcast for comparison with ground truth
     hindcast_reference_time  = pd.to_datetime(hindcast['time'])
     hindcast_prediction_time = hindcast_reference_time + offset
-    hindcast['time'] = hindcast_prediction_time
+    hindcast = hindcast.assign_coords(time=hindcast_prediction_time)
 
     # crop hindcast and observation to the same time window
     # (bias_start + offset : bias_end)
-    observation = observation.sel(time=slice(hindcast.time.min(), args.bias_end))
+    obs_window = observation.sel(time=slice(hindcast.time.min(), args.bias_end))
     hindcast    = hindcast.sel(time=slice(None, args.bias_end))
 
     # bias correction of each ensemble member
     QM = xsdba.EmpiricalQuantileMapping.train(
-            observation, hindcast, nquantiles=10, group="time.month", kind="+"
+            obs_window, hindcast, nquantiles=10, group="time.month", kind="+"
     )
     adjusted = QM.adjust(forecast, extrapolation="constant", interp="linear").reindex(latitude=list(hindcast.latitude))
     
