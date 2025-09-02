@@ -1,8 +1,6 @@
 import argparse
 import numpy as np
 import xarray as xr
-import xeofs as xe
-from sklearn.cluster import KMeans
 
 """
 Compute SEAS5 weather regime index by projecting the SEAS5 monthly anomalies onto the ERA5 weather regimes
