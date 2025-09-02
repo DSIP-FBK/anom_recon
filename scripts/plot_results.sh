@@ -40,8 +40,8 @@ seas5_prec="$data_dir/SEAS5_tp_anom_europe_bias1981-2010_201101-202412.nc"      
 Iwr_SEAS5="$data_dir/SEAS5_monthly_z500_7wr_noa_bias1981-2010_201101-202412.nc"  # path to the SEAS5 monthly 7 WR indices
 
 # plot 7WR cluster means (Fig. 1)
-# python compute_nWR.py --z500 $ERA5_z500  # note: to proper reproduce the Fig. 1 the z500 on the full north-hemisphere is needed
-# python plot_7WR.py  # note: the order of the clusters might be different from the one in the paper, but the clusters are the same
+python compute_nWR.py --z500 $ERA5_z500  # note: to proper reproduce the Fig. 1 the z500 on the full north-hemisphere is needed
+python plot_7WR.py  # note: the order of the clusters might be different from the one in the paper, but the clusters are the same
 
 # plot spatial MSE, ACC and CE with 7 WR
 python plot_temp_prec_skills.py \
@@ -49,7 +49,7 @@ python plot_temp_prec_skills.py \
         -prec_model $model_7wr_prec \
         -start $start
 
-# plot skills with 7, 4, NAO and 0 indices
+plot skills with 7, 4, NAO and 0 indices
 python plot_numWR_skills.py \
         -wr7_temp $model_7wr_temp \
         -wr7_prec $model_7wr_prec \
@@ -85,18 +85,18 @@ python compute_mare_mae_acc_ce.py \
 
 # plot MARE vs MAE, ACC and CE
 python plot_mare_acc_ce.py \
-        --winter_temp_acc data/pert_modelsT_winter_med_acc_50_$start-12-2024-12.npy \
-        --winter_temp_ce data/pert_modelsT_winter_med_ce_50_$start-12-2024-12.npy \
-        --winter_prec_acc data/pert_modelsP_winter_med_acc_50_$start-12-2024-12.npy \
-        --winter_prec_ce data/pert_modelsP_winter_med_ce_50_$start-12-2024-12.npy \
-        --winter_seas5_temp_skills data/seas5T_winter_med_mae_acc_ce_50_$start-12-2024-12.npy \
-        --winter_seas5_prec_skills data/seas5P_winter_med_mae_acc_ce_50_$start-12-2024-12.npy \
-        --summer_temp_acc data/pert_modelsT_summer_med_acc_50_$start-06-2024-08.npy \
-        --summer_temp_ce data/pert_modelsT_summer_med_ce_50_$start-06-2024-08.npy \
-        --summer_prec_acc data/pert_modelsP_summer_med_acc_50_$start-06-2024-08.npy \
-        --summer_prec_ce data/pert_modelsP_summer_med_ce_50_$start-06-2024-08.npy \
-        --summer_seas5_temp_skills data/seas5T_summer_med_mae_acc_ce_50_$start-06-2024-08.npy \
-        --summer_seas5_prec_skills data/seas5P_summer_med_mae_acc_ce_50_$start-06-2024-08.npy \
+        --winter_temp_acc data/pert_modelsT_winter_med_acc_50_$start-2024.npy \
+        --winter_temp_ce data/pert_modelsT_winter_med_ce_50_$start-2024.npy \
+        --winter_prec_acc data/pert_modelsP_winter_med_acc_50_$start-2024.npy \
+        --winter_prec_ce data/pert_modelsP_winter_med_ce_50_$start-2024.npy \
+        --winter_seas5_temp_skills data/seas5T_winter_med_mae_acc_ce_50_$start-2024.npy \
+        --winter_seas5_prec_skills data/seas5P_winter_med_mae_acc_ce_50_$start-2024.npy \
+        --summer_temp_acc data/pert_modelsT_summer_med_acc_50_$start-2024.npy \
+        --summer_temp_ce data/pert_modelsT_summer_med_ce_50_$start-2024.npy \
+        --summer_prec_acc data/pert_modelsP_summer_med_acc_50_$start-2024.npy \
+        --summer_prec_ce data/pert_modelsP_summer_med_ce_50_$start-2024.npy \
+        --summer_seas5_temp_skills data/seas5T_summer_med_mae_acc_ce_50_$start-2024.npy \
+        --summer_seas5_prec_skills data/seas5P_summer_med_mae_acc_ce_50_$start-2024.npy \
         --start $start
 
 # plot model with SEAS5 WR index vs SEAS5
@@ -106,13 +106,13 @@ python compute_IwrSEAS5_models.py \
         --seas5_prec $seas5_prec \
         --model_temp $model_7wr_temp \
         --model_prec $model_7wr_prec \
-        --start $start
+        --start $sta$startrt
 
 python plot_IwrSEAS5_skills.py \
         --anom_temp $ERA5_t2m \
         --anom_prec $ERA5_tp \
         --seas5_temp $seas5_temp \
         --seas5_prec $seas5_prec \
-        --model_seas5_temp data/model_seas5_7wrT.nc \
-        --model_seas5_prec data/model_seas5_7wrP.nc \
+        --model_seas5_temp data/model_seas5_7wrT_$start.nc \
+        --model_seas5_prec data/model_seas5_7wrP_$start.nc \
         --start $start
