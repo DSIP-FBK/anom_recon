@@ -65,6 +65,8 @@ seas5P_DJF  = get_SEAS5_season(seas5P, 'winter')
 seas5P_JJA  = get_SEAS5_season(seas5P, 'summer')
 
 # models.rename({'latitude': 'lat', 'longitude': 'lon'})
+print(args.model_seas5_temp)
+print(args.model_seas5_prec)
 model_seas5T = xr.open_dataarray(args.model_seas5_temp)
 model_seas5P = xr.open_dataarray(args.model_seas5_prec)
 
@@ -81,18 +83,27 @@ model_seas5_7wrP_JJA = get_SEAS5_season(model_seas5P, 'summer')
 
 # reduce all variables to common time-range
 start, end           = args.start, '2024'
-anomT_DJF            = anomT_DJF.sel(time=slice(start, end))
-anomT_JJA            = anomT_JJA.sel(time=slice(start, end))
-seas5T_DJF           = seas5T_DJF.sel(time=slice(start, end))
-seas5T_JJA           = seas5T_JJA.sel(time=slice(start, end))
-model_seas5_7wrT_DJF = model_seas5_7wrT_DJF.sel(time=slice(start, end))
-model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.sel(time=slice(start, end))
-anomP_DJF            = anomP_DJF.sel(time=slice(start, end))
-anomP_JJA            = anomP_JJA.sel(time=slice(start, end))
-seas5P_DJF           = seas5P_DJF.sel(time=slice(start, end))
-seas5P_JJA           = seas5P_JJA.sel(time=slice(start, end))
-model_seas5_7wrP_DJF = model_seas5_7wrP_DJF.sel(time=slice(start, end))
-model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.sel(time=slice(start, end))
+common_time_DJF = np.intersect1d(
+    anomT_DJF.sel(time=slice(args.start, end)).time.values, 
+    seas5T_DJF.sel(time=slice(args.start, end)).time.values
+    )
+anomT_DJF            = anomT_DJF.sel(time=common_time_DJF)
+seas5T_DJF           = seas5T_DJF.sel(time=common_time_DJF)
+model_seas5_7wrT_DJF = model_seas5_7wrT_DJF.sel(time=common_time_DJF)
+anomP_DJF            = anomP_DJF.sel(time=common_time_DJF)
+seas5P_DJF           = seas5P_DJF.sel(time=common_time_DJF)
+model_seas5_7wrP_DJF = model_seas5_7wrP_DJF.sel(time=common_time_DJF)
+
+common_time_JJA = np.intersect1d(
+    anomT_JJA.sel(time=slice(args.start, end)).time.values, 
+    seas5T_JJA.sel(time=slice(args.start, end)).time.values
+    )
+anomT_JJA            = anomT_JJA.sel(time=common_time_JJA)
+seas5T_JJA           = seas5T_JJA.sel(time=common_time_JJA)
+model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.sel(time=common_time_JJA)
+anomP_JJA            = anomP_JJA.sel(time=common_time_JJA)
+seas5P_JJA           = seas5P_JJA.sel(time=common_time_JJA)
+model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.sel(time=common_time_JJA)
 
 # ensemble and models mean
 seas5T_DJF = seas5T_DJF.mean(dim='number')
@@ -103,6 +114,7 @@ model_seas5_7wrT_DJF = model_seas5_7wrT_DJF.mean(dim=['number', 'ensemble_member
 model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.mean(dim=['number', 'ensemble_member'])
 model_seas5_7wrP_DJF = model_seas5_7wrP_DJF.mean(dim=['number', 'ensemble_member'])
 model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.mean(dim=['number', 'ensemble_member'])
+
 
 # --------------
 # Compute skills

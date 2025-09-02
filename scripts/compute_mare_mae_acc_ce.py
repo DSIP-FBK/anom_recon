@@ -1,13 +1,6 @@
 import argparse
 import numpy as np
 import xarray as xr
-from scipy.stats import pearsonr
-
-# plotting
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, HPacker, VPacker
-from matplotlib.patches import Patch, Rectangle
-from matplotlib.lines import Line2D
 
 # custom functions
 from functions import *
@@ -58,14 +51,15 @@ anom_seas5P      = xr.open_dataarray(args.seas5_prec)\
 anom_seas5P_sea  = get_SEAS5_season(anom_seas5P, args.season)
 
 # reduce all variables to common time-range
-if args.season == 'winter':
-    start, end      = f'{args.start}-12', '2024-12'
-elif args.season == 'summer':
-    start, end      = f'{args.start}-06', '2024-08'
-model_anomT_sea = model_anomT_sea.sel(time=slice(start, end))
-model_anomP_sea = model_anomP_sea.sel(time=slice(start, end))
-anom_seas5T_sea = anom_seas5T_sea.sel(time=slice(start, end))
-anom_seas5P_sea = anom_seas5P_sea.sel(time=slice(start, end))
+end = '2024'
+common_time = np.intersect1d(
+    model_anomT_sea.sel(time=slice(args.start, end)).time.values, 
+    anom_seas5P_sea.sel(time=slice(args.start, end)).time.values
+    )
+model_anomT_sea = model_anomT_sea.sel(time=common_time)
+model_anomP_sea = model_anomP_sea.sel(time=common_time)
+anom_seas5T_sea = anom_seas5T_sea.sel(time=common_time)
+anom_seas5P_sea = anom_seas5P_sea.sel(time=common_time)
 
 # mask outside land
 lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
@@ -116,8 +110,7 @@ while mare <= max_mare:
     # compute temperature from perturbed indexes
     pert_idxsT       = generate_perturbed_indexes(idxsT, idx_mare=mare, idx_mre=mean_err, N=N)
     pert_modelsT     = get_perturbed_models_out(torch_modelsT, pert_idxsT, model_anomT, datamoduleT)\
-                        .sel(time=slice(start, end)).mean(dim='number')
-    
+                        .sel(time=common_time).mean(dim='number')    
     pert_modelsT     = pert_modelsT.where(lsm > .8)
     pert_modelsT_sea = pert_modelsT[:, np.isin(pert_modelsT.time.dt.month, months)]
 
@@ -132,10 +125,10 @@ while mare <= max_mare:
     mare += eps
 
 # Save temperature
-np.save(f'data/seas5T_{args.season}_med_mae_acc_ce_{N}_{start}-{end}.npy', [seas5T_sea_med_mae, seas5T_sea_med_acc, seas5T_sea_med_ce])
-np.save(f'data/pert_modelsT_{args.season}_med_mae_{N}_{start}-{end}.npy', pert_modelsT_sea_med_mae)
-np.save(f'data/pert_modelsT_{args.season}_med_acc_{N}_{start}-{end}.npy', pert_modelsT_sea_med_acc)
-np.save(f'data/pert_modelsT_{args.season}_med_ce_{N}_{start}-{end}.npy', pert_modelsT_sea_med_ce)
+np.save(f'data/seas5T_{args.season}_med_mae_acc_ce_{N}_{args.start}-{end}.npy', [seas5T_sea_med_mae, seas5T_sea_med_acc, seas5T_sea_med_ce])
+np.save(f'data/pert_modelsT_{args.season}_med_mae_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_mae)
+np.save(f'data/pert_modelsT_{args.season}_med_acc_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_acc)
+np.save(f'data/pert_modelsT_{args.season}_med_ce_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_ce)
 
 # --------------------------
 # Loop for the precipitation
@@ -162,7 +155,7 @@ while mare <= max_mare:
     # compute precipitation from perturbed indexes
     pert_idxsP       = generate_perturbed_indexes(idxsP, idx_mare=mare, idx_mre=mean_err, N=N)
     pert_modelsP     = get_perturbed_models_out(torch_modelsP, pert_idxsP, model_anomP, datamoduleP)\
-                        .sel(time=slice(start, end)).mean(dim='number')
+                        .sel(time=common_time).mean(dim='number')
     pert_modelsP     = pert_modelsP.where(lsm > .8)
     pert_modelsP_sea = pert_modelsP[:, np.isin(pert_modelsP.time.dt.month, months)]
 
@@ -178,7 +171,7 @@ while mare <= max_mare:
     mare += eps
 
 # Save precipitation
-np.save(f'data/seas5P_{args.season}_med_mae_acc_ce_{N}_{start}-{end}.npy', [seas5P_sea_med_mae, seas5P_sea_med_acc, seas5P_sea_med_ce])
-np.save(f'data/pert_modelsP_{args.season}_med_mae_{N}_{start}-{end}.npy', pert_modelsP_sea_med_mae)
-np.save(f'data/pert_modelsP_{args.season}_med_acc_{N}_{start}-{end}.npy', pert_modelsP_sea_med_acc)
-np.save(f'data/pert_modelsP_{args.season}_med_ce_{N}_{start}-{end}.npy', pert_modelsP_sea_med_ce)
+np.save(f'data/seas5P_{args.season}_med_mae_acc_ce_{N}_{args.start}-{end}.npy', [seas5P_sea_med_mae, seas5P_sea_med_acc, seas5P_sea_med_ce])
+np.save(f'data/pert_modelsP_{args.season}_med_mae_{N}_{args.start}-{end}.npy', pert_modelsP_sea_med_mae)
+np.save(f'data/pert_modelsP_{args.season}_med_acc_{N}_{args.start}-{end}.npy', pert_modelsP_sea_med_acc)
+np.save(f'data/pert_modelsP_{args.season}_med_ce_{N}_{args.start}-{end}.npy', pert_modelsP_sea_med_ce)
