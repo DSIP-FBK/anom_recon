@@ -4,6 +4,9 @@ defaults:
 
 tags: ["noa_1940_2024_NAO", "summer"]
 
+train_last_year: '2005'
+val_last_year: '2010'
+
 seed: 42
 
 trainer:
@@ -13,9 +16,9 @@ task_name: t2m_ERA5
 
 hydra:
   run:
-    dir: ${paths.log_dir}/${task_name}/NAO_summer
+    dir: ${paths.log_dir}/${train_last_year}/${task_name}/NAO_summer
   sweep:
-    dir: ${paths.log_dir}/${task_name}/NAO_summer
+    dir: ${paths.log_dir}/${train_last_year}/${task_name}/NAO_summer
     subdir: ${hydra.job.num}
 
 data:
@@ -25,5 +28,5 @@ data:
   months: [6,7,8]
   num_indexes:
     - 1
-  train_last_date: '2010-12-31'
-  val_last_date: '2014-12-31'
+  train_last_date: '${train_last_year}-12-31'
+  val_last_date: '${val_last_year}-12-31'

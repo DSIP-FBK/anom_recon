@@ -4,6 +4,9 @@ defaults:
 
 tags: ["noa_1940_2024_7wr"]
 
+train_last_year: '2005'
+val_last_year: '2010'
+
 seed: 42
 
 trainer:
@@ -13,9 +16,9 @@ task_name: t2m_ERA5
 
 hydra:
   run:
-    dir: ${paths.log_dir}/${task_name}/7wr
+    dir: ${paths.log_dir}/${train_last_year}/${task_name}/7wr
   sweep:
-    dir: ${paths.log_dir}/${task_name}/7wr
+    dir: ${paths.log_dir}/${train_last_year}/${task_name}/7wr
     subdir: ${hydra.job.num}
 
 data:
@@ -25,5 +28,5 @@ data:
   months: []
   num_indexes:
     - 7
-  train_last_date: '2010-12-31'
-  val_last_date: '2014-12-31'
+  train_last_date: '${train_last_year}-12-31'
+  val_last_date: '${val_last_year}-12-31'
