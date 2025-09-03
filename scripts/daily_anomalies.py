@@ -49,4 +49,15 @@ anom_norm = anom_filtered.groupby('time.dayofyear') / cal_std.mean(dim=['latitud
 
 # save file
 print('Saving...', end='\r')
-anom_norm.to_netcdf(args.out)
+anom.to_netcdf(args.out)
+anom_norm.to_netcdf(args.out.replace('_anom_', '_anom_norm_'))
+
+# save mean and std to recover actual values
+if 'z500' in args.file:
+    name = 'z500'
+elif 't2m' in args.file:
+    name = 't2m'
+elif 'tp' in args.file:
+    name = 'tp'
+cal_clim.to_netcdf(f'data/cal_clim_{name}_{args.clim_start}-{args.clim_end}.nc')
+cal_std.to_netcdf(f'data/cal_std_{name}_{args.clim_start}-{args.clim_end}.nc')
