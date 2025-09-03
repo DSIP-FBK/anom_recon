@@ -176,7 +176,7 @@ def models_with_SEAS5_indexes(models, seas5_idxs, anom, datamodule, start_year=1
     for leadtime in seas5_idxs.forecastMonth.data:
         for ensemble_member in seas5_idxs.number.data:
             idxs = seas5_idxs.sel(forecastMonth=leadtime, number=ensemble_member)
-            models_out = get_models_out(models, idxs, anom,datamodule)
+            models_out = get_models_out(models, idxs, anom, datamodule)
             models_seas5_index.loc[
                 dict(
                     time=models_out.time,
@@ -301,6 +301,37 @@ def get_composite_recon(var, Iwr, clim_start, clim_end, months=None):
     )
 
     return composite_recon
+
+
+# ------------------------------------------------
+# Anomalies related functions
+# ------------------------------------------------
+def monthly_anom_from_clim(monthly, daily_cal_clim, norm=False):
+    month_anom_list = []
+
+    # compute start DOY of each month and number of days in month
+    for t in monthly['time']:
+        year = t.dt.year.values
+        month = t.dt.month.values
+        days_in_month = t.dt.days_in_month.values
+        # start day of month as DOY
+        start_doy = pd.Timestamp(f'{year}-{month}-01').dayofyear - 1
+        # slice the climatology for these DOYs
+        # handle wrap-around for leap years
+        if start_doy + days_in_month <= 366:
+            month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].mean(dim='dayofyear')
+        else:
+            # wrap-around for Dec 31 in leap year DOY indexing
+            first = daily_cal_clim[start_doy:].mean(dim='dayofyear')
+            second = daily_cal_clim[:(start_doy + days_in_month - 366)].mean(dim='dayofyear')
+            month_clim = (first * (366 - start_doy) + second * (start_doy + days_in_month - 366)) / days_in_month
+        
+        if norm:
+            month_anom_list.append(monthly.sel(time=t) / month_clim)
+        else:    
+            month_anom_list.append(monthly.sel(time=t) - month_clim)
+
+    return xr.concat(month_anom_list, dim='time')
 
 
 # ------------------------------------------------
