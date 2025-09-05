@@ -27,16 +27,29 @@ end   = '2024-12-31'
 #---------------------------------
 print('reading data...', end='\r')
 era5 = xr.open_dataarray(args.era5)\
-    .sel(time=slice(start, end), longitude=slice(min_lon, max_lon), latitude=slice(max_lat, min_lat))# / 1000  # useful for pressure
+    .sel(time=slice(start, end), longitude=slice(min_lon, max_lon), latitude=slice(max_lat, min_lat))
 
 # SEAS biased. Note: only the first 25 members are for hindcast
 seas5_biased = xr.open_dataarray(args.seas5)\
     .sel(number=slice(0,24))\
-    .sel(forecast_reference_time=slice(start, end), longitude=slice(min_lon, max_lon), latitude=slice(max_lat, min_lat))# / 1000  # useful for pressure
+    .sel(forecast_reference_time=slice(start, end), longitude=slice(min_lon, max_lon), latitude=slice(max_lat, min_lat))
 seas5_biased = seas5_biased.rename({'forecast_reference_time': 'time'})#.sel(pressure_level=500).drop_vars(['pressure_level'])
 
+if 'z500' in args.seas5:
+    var_name = 'z500'
+    seas5_biased = seas5_biased.sel(pressure_level=500).drop_vars(['pressure_level'])
+elif 'tp' in args.seas5:
+    var_name ='tp'
+
+    # conversion from m/s to m in a month
+    days_in_month = seas5_biased['time'].dt.days_in_month
+    seconds_in_month = days_in_month * 24 * 60 * 60
+    seas5_biased = seas5_biased * xr.DataArray(seconds_in_month, dims=["time"])
+elif 't2m' in args.seas5:
+    var_name = 't2m'
+
+
 # setting names
-var_name  = 'var'
 era5.name = var_name
 seas5_biased.name = var_name
 
@@ -95,7 +108,7 @@ for forecastMonth in seas5_biased.forecastMonth.data:
     )
     adjusted = QM.adjust(forecast, extrapolation="constant", interp="linear").reindex(latitude=list(hindcast.latitude))
     
-    seas5_nobias.loc[dict(forecastMonth=forecastMonth)] = adjusted # * 1000 # useful for pressure
+    seas5_nobias.loc[dict(forecastMonth=forecastMonth)] = adjusted
 
 
 print('saving...                                       ', end='\r')
