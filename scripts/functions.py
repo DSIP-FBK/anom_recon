@@ -306,7 +306,7 @@ def get_composite_recon(var, Iwr, clim_start, clim_end, months=None):
 # ------------------------------------------------
 # Anomalies related functions
 # ------------------------------------------------
-def monthly_anom_from_clim(monthly, daily_cal_clim, norm=False):
+def monthly_anom_from_clim(monthly, daily_cal_clim, method, norm=False):
     month_anom_list = []
 
     # compute start DOY of each month and number of days in month
@@ -316,15 +316,11 @@ def monthly_anom_from_clim(monthly, daily_cal_clim, norm=False):
         days_in_month = t.dt.days_in_month.values
         # start day of month as DOY
         start_doy = pd.Timestamp(f'{year}-{month}-01').dayofyear - 1
-        # slice the climatology for these DOYs
-        # handle wrap-around for leap years
-        if start_doy + days_in_month <= 366:
+        
+        if method == 'mean':
             month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].mean(dim='dayofyear')
-        else:
-            # wrap-around for Dec 31 in leap year DOY indexing
-            first = daily_cal_clim[start_doy:].mean(dim='dayofyear')
-            second = daily_cal_clim[:(start_doy + days_in_month - 366)].mean(dim='dayofyear')
-            month_clim = (first * (366 - start_doy) + second * (start_doy + days_in_month - 366)) / days_in_month
+        elif method == 'sum':
+            month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].sum(dim='dayofyear')
         
         if norm:
             month_anom_list.append(monthly.sel(time=t) / month_clim)
