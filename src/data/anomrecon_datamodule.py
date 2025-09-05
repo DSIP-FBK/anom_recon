@@ -40,6 +40,7 @@ class AnomReconDataModule(LightningDataModule):
                 land_sea_mask_path=self.hparams.land_sea_mask_path,
                 orography_path=self.hparams.orography_path,
                 num_indexes=self.hparams.num_indexes,
+                train_last_date=self.hparams.train_last_date,
                 num_pca=self.hparams.num_pca,
                 months=self.hparams.months,
             )
@@ -48,37 +49,28 @@ class AnomReconDataModule(LightningDataModule):
             train_last_date = pd.to_datetime(self.hparams.train_last_date, format='%Y-%m-%d')
             val_last_date   = pd.to_datetime(self.hparams.val_last_date, format='%Y-%m-%d')
             
+            # divide the dataset
             train_start_idx = 0
             train_end_idx   = sum(time.data <= train_last_date)
-            train_indexes   = np.arange(
-                train_start_idx,
-                train_end_idx
-            )
+            train_indexes   = np.arange(train_start_idx, train_end_idx)
 
+            val_start_idx = train_end_idx
+            val_end_idx   = sum(time.data <= val_last_date)
+            val_indexes   = np.arange(val_start_idx, val_end_idx)
+
+            test_start_idx = val_end_idx
+            test_end_idx   = len(time)
+            test_indexes   = np.arange(test_start_idx, test_end_idx)
+
+            # build the subsets
             self.data_train = torch.utils.data.Subset(
                 dataset=dataset,
                 indices=train_indexes
             )
-
-            val_start_idx = train_end_idx
-            val_end_idx   = sum(time.data <= val_last_date)
-            val_indexes   = np.arange(
-                val_start_idx,
-                val_end_idx
-            )
-            
             self.data_val = torch.utils.data.Subset(
                 dataset=dataset,
                 indices=val_indexes
             )
-            
-            test_start_idx = val_end_idx
-            test_end_idx   = len(time)
-            test_indexes   = np.arange(
-                test_start_idx,
-                test_end_idx
-            )
-            
             self.data_test = torch.utils.data.Subset(
                 dataset=dataset,
                 indices=test_indexes
