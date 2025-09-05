@@ -4,7 +4,7 @@ import pandas as pd
 import xarray as xr
 
 # custom functions
-from functions import low_pass_weights
+from functions import low_pass_weights, monthly_anom_from_clim
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--era5", help="path to the NetCDF input file containing the ERA5 data")
@@ -16,26 +16,38 @@ args = parser.parse_args()
 
 print('Reading NetCDF...')
 era5 = xr.open_dataarray(args.era5).sel(time=slice(args.clim_start, args.clim_end))
-seas5 = xr.open_dataarray(args.seas5).sel(latitude=slice(None, 30), longitude=slice(-80, 40))#.sel(pressure_level=500).drop_vars({'pressure_level'})
+seas5 = xr.open_dataarray(args.seas5).sel(latitude=slice(None, 30), longitude=slice(-80, 40))
 
-print('Computing climatology...')
+#print('Computing climatology...')
 # calendar day climatology
-cal_clim = era5.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+#cal_clim = era5.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+if 'z500' in args.era5:
+    name = 'z500'
+    method = 'mean'
+elif 't2m' in args.era5:
+    name = 't2m'
+    method = 'mean'
+elif 'tp' in args.era5:
+    name = 'tp'
+    method = 'sum'
+cal_clim = xr.open_dataarray(f'../scripts/data/cal_clim_{name}_{args.clim_start}-{args.clim_end}.nc')
+cal_std  = xr.open_dataarray(f'../scripts/data/cal_std_{name}_{args.clim_start}-{args.clim_end}.nc')
 
-print('Computing normalization...')
+#print('Computing normalization...')
 # anomalies 
-era5_anom = (era5.groupby('time.dayofyear') - cal_clim)
+#era5_anom = (era5.groupby('time.dayofyear') - cal_clim)
 
-# 10 days low-pass filtered
-window = 31
-wgts = xr.DataArray(
-    low_pass_weights(window, 1. / 10.),
-    dims=['window']
-    )
-era5_anom_filtered = era5_anom.pad(time=15, mode='wrap').rolling(time=window, center=True).construct('window').dot(wgts).dropna(dim='time')
+# # 10 days low-pass filtered
+# window = 31
+# wgts = xr.DataArray(
+#     low_pass_weights(window, 1. / 10.),
+#     dims=['window']
+#     )
+# era5_anom_filtered = era5_anom.pad(time=15, mode='wrap').rolling(time=window, center=True).construct('window').dot(wgts).dropna(dim='time')
 
-# calendar day standard deviation
-cal_std = era5_anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+# # calendar day standard deviation
+# cal_std = era5_anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
+
 
 # monthly climatology mean and standard deviation
 # cal_clim_monthly = cal_clim.coarsen(dayofyear=30, boundary='trim').mean()
@@ -45,16 +57,27 @@ cal_std = era5_anom_filtered.groupby('time.dayofyear').std().pad(dayofyear=7, mo
 # cal_std_monthly = cal_std.coarsen(dayofyear=30, boundary='trim').mean()
 # cal_std_monthly = cal_std_monthly.rename({'dayofyear': 'month'})
 # cal_std_monthly['month'] = np.arange(1, 13)
-date = pd.to_datetime(["2000"] * cal_clim.dayofyear.size, format="%Y") \
-       + pd.to_timedelta(cal_clim.dayofyear.values - 1, unit="D")
+# date = pd.to_datetime(["2000"] * cal_clim.dayofyear.size, format="%Y") \
+#        + pd.to_timedelta(cal_clim.dayofyear.values - 1, unit="D")
 
-cal_clim_monthly = cal_clim.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
-cal_std_monthly  = cal_std.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
+# cal_clim_monthly = cal_clim.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
+# cal_std_monthly  = cal_std.assign_coords(date=("dayofyear", date)).groupby("date.month").mean(dim="dayofyear")
 
 # --------------------------------
 # Compute SEAS5 biased anomalies
 #---------------------------------
 print('computing SEAS5 anomalies...')
+
+seas5_anom = xr.DataArray(
+    dims=['time', 'forecastMonth', 'latitude', 'longitude', 'number'],
+    coords=dict(
+        time=seas5.time,
+        forecastMonth=seas5.forecastMonth,
+        longitude=seas5.longitude,
+        latitude=seas5.latitude,
+        number=seas5.number
+    )
+)
 
 seas5_anom_norm = xr.DataArray(
     dims=['time', 'forecastMonth', 'latitude', 'longitude', 'number'],
@@ -77,15 +100,20 @@ for forecastMonth in range(1,7):
     prediction['time'] = prediction_times
 
     # compute the anomalies
-    anom = prediction.groupby('time.month')  - cal_clim_monthly
+    #anom = prediction.groupby('time.month')  - cal_clim_monthly
+    anom = monthly_anom_from_clim(prediction, cal_clim, method=method)
 
     # normalize
-    anom_norm = anom.groupby('time.month') / cal_std_monthly.mean(dim=['latitude', 'longitude'])
+    #anom_norm = anom.groupby('time.month') / cal_std_monthly.mean(dim=['latitude', 'longitude'])
+    anom_norm = monthly_anom_from_clim(anom, cal_std, method=method, norm=True)
     
     # shift back to valid_time
+    anom['time'] = forecast_reference_time
     anom_norm['time'] = forecast_reference_time
+    seas5_anom.loc[dict(forecastMonth=forecastMonth)] = anom
     seas5_anom_norm.loc[dict(forecastMonth=forecastMonth)] = anom_norm
     
 # save file
 print('Saving...')
-seas5_anom_norm.to_netcdf(args.out)
+seas5_anom.to_netcdf(args.out)
+seas5_anom_norm.to_netcdf(args.out.replace('_anom_', '_anom_norm_'))
