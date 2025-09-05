@@ -15,7 +15,7 @@ tp   = xr.open_dataarray(args.tp)
 # monthly mean
 z500_monthly = z500.resample(time='1MS').mean()
 t2m_monthly  = t2m.resample(time='1MS').mean()
-tp_monthly = tp.resample(time='1MS').mean()
+tp_monthly = tp.resample(time='1MS').sum()
 
 # output paths
 z500_out = args.z500.replace('daily', 'monthly')
