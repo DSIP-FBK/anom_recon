@@ -66,7 +66,7 @@ seas5_biased = seas5_biased.chunk({"latitude": 20, "longitude": 20, "number": 5}
 #---------------------------------
 print('bias correction...       ', end='\r')
 
-start = pd.to_datetime(args.bias_end) + pd.DateOffset(days=1)
+start = str(pd.to_datetime(args.bias_end).year + 1)
 seas5_nobias = xr.DataArray(
     name=var_name,
     dims=['time', 'latitude', 'longitude', 'number', 'forecastMonth'],
@@ -100,7 +100,7 @@ for forecastMonth in seas5_biased.forecastMonth.data:
     # crop hindcast and observation to the same time window
     # (bias_start + offset : bias_end)
     obs_window = observation.sel(time=slice(hindcast.time.min(), args.bias_end))
-    hindcast    = hindcast.sel(time=slice(None, args.bias_end))
+    hindcast   = hindcast.sel(time=slice(None, args.bias_end))
 
     # bias correction of each ensemble member
     QM = xsdba.EmpiricalQuantileMapping.train(
