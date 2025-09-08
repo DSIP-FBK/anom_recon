@@ -24,7 +24,7 @@ hydra:
 data:
   indexes_paths: 
     - ${paths.data_dir}/monthly_z500_7wr_noa_19400101-20241201.nc  # whatever: num_indexes is zero!
-  anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_merged.nc
+  anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_regrid.nc
   months: []
   num_indexes:
     - 0

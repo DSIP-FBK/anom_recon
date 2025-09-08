@@ -24,7 +24,7 @@ hydra:
 data:
   indexes_paths: 
     - ${paths.data_dir}/monthly_z500_NAO_JJA_noa_19400101-20241201.nc
-  anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_merged.nc
+  anomalies_path: ${paths.data_dir}/monthly_tp_anom_europe_19400101-20241231_regrid.nc
   months: [6,7,8]
   num_indexes:
     - 1
