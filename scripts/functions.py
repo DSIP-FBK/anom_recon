@@ -326,14 +326,19 @@ def monthly_anom_from_clim(monthly, daily_cal_clim, method, norm=False):
         days_in_month = t.dt.days_in_month.values
         # start day of month as DOY
         start_doy = pd.Timestamp(f'{year}-{month}-01').dayofyear - 1
+        clim_slice = daily_cal_clim[start_doy:start_doy + days_in_month]
+
+        # clim_slice is at the denominator
+        if norm:
+            clim_slice = 1. / clim_slice
         
         if method == 'mean':
-            month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].mean(dim='dayofyear')
+            month_clim = clim_slice.mean(dim='dayofyear')
         elif method == 'sum':
-            month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].sum(dim='dayofyear')
-                
+            month_clim = clim_slice.sum(dim='dayofyear')
+            
         if norm:
-            month_anom_list.append(monthly.sel(time=t) / month_clim.mean(dim=['latitude', 'longitude']))
+            month_anom_list.append(monthly.sel(time=t) * month_clim.mean(dim=['latitude', 'longitude']))
         else:    
             month_anom_list.append(monthly.sel(time=t) - month_clim)
 
