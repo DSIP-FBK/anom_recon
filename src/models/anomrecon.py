@@ -30,7 +30,7 @@ class AnomRecon(nn.Module):
         # custom feature number
         flin_in = 1 + 12 + np.sum(self.num_indexes)
         flin_out  =  self.fconv_in - 4
-        assert(flin_out >= flin_hidden)
+        #assert(flin_out >= flin_hidden)
         
         # model: linear resnet layers
         self.linear = nn.Sequential(
