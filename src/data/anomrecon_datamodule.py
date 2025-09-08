@@ -1,10 +1,13 @@
 from typing import Any, Dict, Optional, Tuple
+import os, joblib
 import numpy as np
 import pandas as pd
 import torch
+from hydra.core.hydra_config import HydraConfig
 from lightning import LightningDataModule
 from torch.utils.data import Dataset, DataLoader
 from src.data.components.anomrecon_dataset import IndexAnomaly
+from sklearn.preprocessing import MinMaxScaler
 
 
 class AnomReconDataModule(LightningDataModule):
@@ -21,6 +24,7 @@ class AnomReconDataModule(LightningDataModule):
             num_pca: int = 0,
             train_last_date: str = '2010-12-01',
             val_last_date: str = '2014-12-01',
+            scaler_path: str = '',
             batch_size: int = 1,
             num_workers: int = 1,
             )-> None:
@@ -30,10 +34,16 @@ class AnomReconDataModule(LightningDataModule):
         self.data_train: Optional[Dataset] = None
         self.data_val: Optional[Dataset] = None
         self.data_test: Optional[Dataset] = None
+        self.scaler = None
 
     def setup(self, stage: str) -> None:
+        if self.hparams.scaler_path == '':
+            scaler_path = os.path.join(HydraConfig.get().run.dir, "scaler.pkl")
+        else:
+            scaler_path = self.hparams.scaler_path
 
-        if not self.data_train or not self.data_val or not self.data_test:
+        if stage == "fit":
+            self.scaler = MinMaxScaler(feature_range=(-1, 1))
             dataset = IndexAnomaly(
                 indexes_paths=self.hparams.indexes_paths,
                 anomalies_path=self.hparams.anomalies_path,
@@ -41,40 +51,58 @@ class AnomReconDataModule(LightningDataModule):
                 orography_path=self.hparams.orography_path,
                 num_indexes=self.hparams.num_indexes,
                 train_last_date=self.hparams.train_last_date,
-                num_pca=self.hparams.num_pca,
                 months=self.hparams.months,
+                num_pca=self.hparams.num_pca,
+                scaler=self.scaler,
+                stage=stage.value
             )
+            joblib.dump(dataset.scaler, scaler_path)
 
-            time = dataset.anomalies.time
-            train_last_date = pd.to_datetime(self.hparams.train_last_date, format='%Y-%m-%d')
-            val_last_date   = pd.to_datetime(self.hparams.val_last_date, format='%Y-%m-%d')
-            
-            # divide the dataset
-            train_start_idx = 0
-            train_end_idx   = sum(time.data <= train_last_date)
-            train_indexes   = np.arange(train_start_idx, train_end_idx)
-
-            val_start_idx = train_end_idx
-            val_end_idx   = sum(time.data <= val_last_date)
-            val_indexes   = np.arange(val_start_idx, val_end_idx)
-
-            test_start_idx = val_end_idx
-            test_end_idx   = len(time)
-            test_indexes   = np.arange(test_start_idx, test_end_idx)
-
-            # build the subsets
-            self.data_train = torch.utils.data.Subset(
-                dataset=dataset,
-                indices=train_indexes
+        else:
+            self.scaler = joblib.load(scaler_path)
+            dataset = IndexAnomaly(
+                indexes_paths=self.hparams.indexes_paths,
+                anomalies_path=self.hparams.anomalies_path,
+                land_sea_mask_path=self.hparams.land_sea_mask_path,
+                orography_path=self.hparams.orography_path,
+                num_indexes=self.hparams.num_indexes,
+                train_last_date=self.hparams.train_last_date,
+                months=self.hparams.months,
+                num_pca=self.hparams.num_pca,
+                scaler=self.scaler,
+                stage=stage#.value
             )
-            self.data_val = torch.utils.data.Subset(
-                dataset=dataset,
-                indices=val_indexes
-            )
-            self.data_test = torch.utils.data.Subset(
-                dataset=dataset,
-                indices=test_indexes
-            )
+        
+        time = dataset.anomalies.time
+        train_last_date = pd.to_datetime(self.hparams.train_last_date, format='%Y-%m-%d')
+        val_last_date   = pd.to_datetime(self.hparams.val_last_date, format='%Y-%m-%d')
+        
+        # divide the dataset
+        train_start_idx = 0
+        train_end_idx   = sum(time.data <= train_last_date)
+        train_indexes   = np.arange(train_start_idx, train_end_idx)
+
+        val_start_idx = train_end_idx
+        val_end_idx   = sum(time.data <= val_last_date)
+        val_indexes   = np.arange(val_start_idx, val_end_idx)
+
+        test_start_idx = val_end_idx
+        test_end_idx   = len(time)
+        test_indexes   = np.arange(test_start_idx, test_end_idx)
+
+        # build the subsets
+        self.data_train = torch.utils.data.Subset(
+            dataset=dataset,
+            indices=train_indexes
+        )
+        self.data_val = torch.utils.data.Subset(
+            dataset=dataset,
+            indices=val_indexes
+        )
+        self.data_test = torch.utils.data.Subset(
+            dataset=dataset,
+            indices=test_indexes
+        )
 
     def train_dataloader(self):
         return DataLoader(

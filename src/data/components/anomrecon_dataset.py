@@ -7,7 +7,6 @@ import einops
 from omegaconf import OmegaConf
 from hydra.core.hydra_config import HydraConfig
 from torch.utils.data import Dataset
-from sklearn.preprocessing import MinMaxScaler
 
 
 class IndexAnomaly(Dataset):
@@ -20,7 +19,9 @@ class IndexAnomaly(Dataset):
             num_indexes: list,
             train_last_date: str,
             num_pca: int,
-            months: list = [],
+            scaler,
+            stage: str,
+            months: list,
             ):
         self.indexes_paths = indexes_paths
         self.anomalies_path = anomalies_path
@@ -29,7 +30,8 @@ class IndexAnomaly(Dataset):
         self.num_indexes = num_indexes
         self.train_last_date = train_last_date
         self.num_pca = num_pca
-        self.scaler = MinMaxScaler(feature_range=(-1, 1))
+        self.scaler = scaler
+        self.stage = stage
 
         # --------
         # indexes
@@ -63,20 +65,21 @@ class IndexAnomaly(Dataset):
         # static data
         self.static_data = self.get_static()
 
+        # -------------
         # normalization
+        # -------------
         flatten = self.anomalies.stack(features=('latitude', 'longitude'))
-        self.scaler.fit(
-            flatten.sel(time=slice(None, train_last_date))
-            )
+        
+        if self.stage == 'fit':
+            self.scaler.fit(
+                flatten.sel(time=slice(None, train_last_date))
+                )
         
         self.anomalies = xr.DataArray(
             data=self.scaler.transform(flatten), 
             dims=("time", "features"), 
             coords={"time": flatten.time, "features": flatten.features}
         ).unstack("features")
-
-        # save scaler for inverse normalization on inference
-        joblib.dump(self.scaler, f"{HydraConfig.get().run.dir}/scaler.pkl")
 
 
     def __len__(self):
