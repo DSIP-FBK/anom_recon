@@ -331,9 +331,9 @@ def monthly_anom_from_clim(monthly, daily_cal_clim, method, norm=False):
             month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].mean(dim='dayofyear')
         elif method == 'sum':
             month_clim = daily_cal_clim[start_doy:start_doy + days_in_month].sum(dim='dayofyear')
-        
+                
         if norm:
-            month_anom_list.append(monthly.sel(time=t) / month_clim)
+            month_anom_list.append(monthly.sel(time=t) / month_clim.mean(dim=['latitude', 'longitude']))
         else:    
             month_anom_list.append(monthly.sel(time=t) - month_clim)
 
