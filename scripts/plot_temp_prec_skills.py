@@ -28,7 +28,7 @@ parser.add_argument("-start", type=str, default='2011', help="start date of the 
 args = parser.parse_args()
 
 # models for temperature
-torch_model, datamodule, config = get_torch_models_infos(args.temp_model)
+torch_model, datamodule, config= get_torch_models_infos(args.temp_model)
 anom_temp  = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 idxs_temp  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 model_temp = get_models_out(torch_model, idxs_temp, anom_temp, datamodule)
@@ -65,8 +65,8 @@ model_prec_summer = model_prec_summer.sel(time=slice(start, end))
 # mean absolute error 
 model_temp_winter_mae = abs(anom_temp_winter - model_temp_winter.mean(dim='number')).mean(dim='time')
 model_temp_summer_mae = abs(anom_temp_summer - model_temp_summer.mean(dim='number')).mean(dim='time')
-model_prec_winter_mae = abs(anom_prec_winter - model_prec_winter.mean(dim='number')).mean(dim='time')
-model_prec_summer_mae = abs(anom_prec_summer - model_prec_summer.mean(dim='number')).mean(dim='time')
+model_prec_winter_mae = abs(anom_prec_winter - model_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_prec_summer_mae = abs(anom_prec_summer - model_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
 
 # anomaly correlation coefficient
 model_temp_winter_acc = pearsonr(anom_temp_winter, model_temp_winter.mean(dim='number'), axis=0)
@@ -97,8 +97,8 @@ textwidth = 460 #405  # IJC
 rasterized=True
 palette = ['#ffffff', '#fef8de', '#fceda3', '#fdce67', '#fdaa31', '#f8812c', '#ed5729', '#da2f28', '#b81b22', '#921519']
 cmap = LinearSegmentedColormap.from_list("", palette)
-vmin, vmax = 0, 1.5
-levels = np.linspace(0, 1.5, 16)
+vmin, vmax = 0, 6
+levels = np.linspace(0, 6, 13)
 fig, axs = plt.subplots(
     3, 5, figsize=set_figsize(textwidth, .6, subplots=(3, 3)), layout="tight",
     sharex=True, sharey=True, gridspec_kw={'wspace':0, 'hspace':0.05, 'width_ratios' : [1,1,.05,1,1]},
@@ -111,8 +111,8 @@ axs[0,0].set_ylim(35,70)
 [axs[i,j].coastlines() for j in range(3,5) for i in range(3)]
 [axs[i,j].add_feature(cfeature.OCEAN, facecolor=(1,1,1), zorder=999) for i in range(3) for j in range(5)]
 
-axs[0,0].text(0.35, 1.3, 'two-meter temperature', fontsize=9.5, transform=axs[0,0].transAxes)
-axs[0,3].text(0.6, 1.3, 'precipitation', fontsize=9.5, transform=axs[0,3].transAxes)
+axs[0,0].text(0.35, 1.3, 'two-meter temperature (K)', fontsize=9.5, transform=axs[0,0].transAxes)
+axs[0,3].text(0.6, 1.3, 'precipitation (cm)', fontsize=9.5, transform=axs[0,3].transAxes)
 axs[0,0].set_title('winter (DJF)', fontsize=8)
 axs[0,1].set_title('summer (JJA)', fontsize=8)
 axs[0,3].set_title('winter (DJF)', fontsize=8)
@@ -125,8 +125,8 @@ axs[0,3].contourf(anom_prec.lon, anom_prec.lat, model_prec_winter_mae, cmap=cmap
 axs[0,4].contourf(anom_prec.lon, anom_prec.lat, model_prec_summer_mae, cmap=cmap, vmin=vmin, vmax=vmax, levels=levels, rasterized=rasterized)
 
 cax = inset_axes(axs[0,-1], width="5%", height="100%", loc="upper right", bbox_to_anchor=(0.15, .04, 1, 1), bbox_transform=axs[0,-1].transAxes)
-cb = fig.colorbar(pcm, cax=cax, ticks=np.arange(0.2, 1.5, .3), orientation='vertical', extend='max')
-cb.set_label('MAE', labelpad=11)
+cb = fig.colorbar(pcm, cax=cax, ticks=np.arange(1, vmax, 1), orientation='vertical')
+cb.set_label('MAE (K or cm)', labelpad=18)
 
 # anomaly correlation coefficient
 palette = ['#1b2c62', '#204487', '#2d66af', '#2d66af', '#6bb4e1', '#94d3f3', '#b8e4f8', '#d9f0f9', '#f0f9fd', '#ffffff', '#ffffff', '#fef8de', '#fceda3', '#fdce67', '#fdaa31', '#f8812c', '#ed5729', '#da2f28', '#b81b22', '#921519']
@@ -154,7 +154,7 @@ axs[1,1].contour(anom_temp.lon, anom_temp.lat, model_temp_summer_acc.statistic, 
 axs[1,3].contour(anom_prec.lon, anom_prec.lat, model_prec_winter_acc.statistic, colors='k', linewidths=.5, levels=[.5], rasterized=rasterized)
 axs[1,4].contour(anom_prec.lon, anom_prec.lat, model_prec_summer_acc.statistic, colors='k', linewidths=.5, levels=[.5], rasterized=rasterized)
 
-cax = inset_axes(axs[1,-1], width="5%", height="100%", loc="upper right", bbox_to_anchor=(0.15, .04, 1, 1), bbox_transform=axs[1,-1].transAxes)
+cax = inset_axes(axs[1,-1], width="5%", height="100%", loc="upper right", bbox_to_anchor=(0.15, .06, 1, 1), bbox_transform=axs[1,-1].transAxes)
 cb = fig.colorbar(pcm, cax=cax, orientation='vertical', label='ACC')
 
 # coefficient of efficacy
@@ -173,7 +173,7 @@ axs[2,1].contour(anom_temp.lon, anom_temp.lat, model_temp_summer_ce, ls='--', co
 axs[2,3].contour(anom_prec.lon, anom_prec.lat, model_prec_winter_ce, ls='--', colors='k', linewidths=.5, levels=[.3], rasterized=rasterized)
 axs[2,4].contour(anom_prec.lon, anom_prec.lat, model_prec_summer_ce, ls='--', colors='k', linewidths=.5, levels=[.3], rasterized=rasterized)
 
-cax = inset_axes(axs[2,-1], width="5%", height="100%", loc="upper right", bbox_to_anchor=(0.15, .04, 1, 1), bbox_transform=axs[2,-1].transAxes)
+cax = inset_axes(axs[2,-1], width="5%", height="100%", loc="upper right", bbox_to_anchor=(0.15, .06, 1, 1), bbox_transform=axs[2,-1].transAxes)
 fig.colorbar(pcm, cax=cax, orientation='vertical', label='CE')
 
 # save
