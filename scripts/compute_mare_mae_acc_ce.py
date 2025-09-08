@@ -19,6 +19,11 @@ parser.add_argument("--season", type=str, help="(str) winter or summer")
 parser.add_argument("--start", type=str, default='2011', help="start date of the analysis (default 2011)")
 args = parser.parse_args()
 
+
+# parameters 
+lat_min, lat_max = 35, 70
+lon_min, lon_max = -20, 30
+
 # season
 if args.season == 'winter':
     months = (12,1,2)
@@ -49,6 +54,12 @@ anom_seas5T_sea  = get_SEAS5_season(anom_seas5T, args.season)
 anom_seas5P      = xr.open_dataarray(args.seas5_prec)\
     .rename({'latitude': 'lat', 'longitude': 'lon'}).transpose('time', 'lat', 'lon', 'number', 'forecastMonth').mean(dim='number')
 anom_seas5P_sea  = get_SEAS5_season(anom_seas5P, args.season)
+
+# cut to the European region
+model_anomT_sea = model_anomT_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_anomP_sea = model_anomP_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_seas5T_sea = anom_seas5T_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_seas5P_sea = anom_seas5P_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
 # reduce all variables to common time-range
 end = '2024'
@@ -88,6 +99,7 @@ seas5P_sea_med_ce  = seas5P_sea_ce.median().data
 # ------------------------
 # Loop for the temperature
 # ------------------------
+"""
 mare     = 0.
 eps      = .2
 mean_err = 0
@@ -129,7 +141,7 @@ np.save(f'data/seas5T_{args.season}_med_mae_acc_ce_{N}_{args.start}-{end}.npy', 
 np.save(f'data/pert_modelsT_{args.season}_med_mae_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_mae)
 np.save(f'data/pert_modelsT_{args.season}_med_acc_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_acc)
 np.save(f'data/pert_modelsT_{args.season}_med_ce_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_ce)
-
+"""
 # --------------------------
 # Loop for the precipitation
 # --------------------------
