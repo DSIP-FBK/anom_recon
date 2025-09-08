@@ -64,9 +64,6 @@ seas5P      = xr.open_dataarray(args.seas5_prec).rename({'latitude': 'lat', 'lon
 seas5P_DJF  = get_SEAS5_season(seas5P, 'winter')
 seas5P_JJA  = get_SEAS5_season(seas5P, 'summer')
 
-# models.rename({'latitude': 'lat', 'longitude': 'lon'})
-print(args.model_seas5_temp)
-print(args.model_seas5_prec)
 model_seas5T = xr.open_dataarray(args.model_seas5_temp)
 model_seas5P = xr.open_dataarray(args.model_seas5_prec)
 
@@ -104,6 +101,21 @@ model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.sel(time=common_time_JJA)
 anomP_JJA            = anomP_JJA.sel(time=common_time_JJA)
 seas5P_JJA           = seas5P_JJA.sel(time=common_time_JJA)
 model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.sel(time=common_time_JJA)
+
+# -------------------
+# Sanity check: times
+# -------------------
+# DJF
+assert anomT_DJF.time.equals(seas5T_DJF.time), "Time mismatch: anomT_DJF vs seas5T_DJF"
+assert anomT_DJF.time.equals(model_seas5_7wrT_DJF.time), "Time mismatch: anomT_DJF vs model_seas5_7wrT_DJF"
+assert anomP_DJF.time.equals(seas5P_DJF.time), "Time mismatch: anomP_DJF vs seas5P_DJF"
+assert anomP_DJF.time.equals(model_seas5_7wrP_DJF.time), "Time mismatch: anomP_DJF vs model_seas5_7wrP_DJF"
+
+# JJA
+assert anomT_JJA.time.equals(seas5T_JJA.time), "Time mismatch: anomT_JJA vs seas5T_JJA"
+assert anomT_JJA.time.equals(model_seas5_7wrT_JJA.time), "Time mismatch: anomT_JJA vs model_seas5_7wrT_JJA"
+assert anomP_JJA.time.equals(seas5P_JJA.time), "Time mismatch: anomP_JJA vs seas5P_JJA"
+assert anomP_JJA.time.equals(model_seas5_7wrP_JJA.time), "Time mismatch: anomP_JJA vs model_seas5_7wrP_JJA"
 
 # ensemble and models mean
 seas5T_DJF = seas5T_DJF.mean(dim='number')
@@ -200,7 +212,6 @@ seas5P_JJA_CE = seas5P_JJA_CE.where(lsm > .8)
 # Plot skills
 # -----------
 print('Plotting skills...')
-# columnwidth = 248.9  # QJRMS
 columnwidth = 196.1  # IJC
 seas5_color = '#b81b22'
 model_color = '#204487'
@@ -224,7 +235,6 @@ axs[2,0].set_ylim(-1, 1)
 # ----------------
 # Plot temperature
 # ----------------
-
 # SEAS5 winter
 plot_boxplot(axs[0,0], seas5T_DJF_MAE.data.flatten(), [-0.3,], seas5_color, '*')
 plot_boxplot(axs[1,0], seas5T_DJF_ACC.data.flatten(), [-0.3,], seas5_color, '*')

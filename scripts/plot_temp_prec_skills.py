@@ -27,6 +27,12 @@ parser.add_argument("-prec_model", type=str, help="path to the folder containing
 parser.add_argument("-start", type=str, default='2011', help="start date of the analysis (default 2011)")
 args = parser.parse_args()
 
+# parameters
+lat_min, lat_max = 35, 70
+lon_min, lon_max = -20, 30
+winter = (12,1,2)
+summer = (6,7,8)
+
 # models for temperature
 torch_model, datamodule, config= get_torch_models_infos(args.temp_model)
 anom_temp  = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
@@ -39,9 +45,13 @@ anom_prec  = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitu
 idxs_prec  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 model_prec = get_models_out(torch_model, idxs_prec, anom_prec, datamodule)
 
+# cut to the European region
+anom_temp = anom_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_prec = anom_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_temp = model_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_prec = model_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
 # seasons
-winter = (12,1,2)
-summer = (6,7,8)
 model_temp_winter = model_temp[np.isin(model_temp.time.dt.month, winter)]
 anom_temp_winter  = anom_temp[np.isin(anom_temp.time.dt.month, winter)]
 model_temp_summer = model_temp[np.isin(model_temp.time.dt.month, summer)]
@@ -67,6 +77,8 @@ model_temp_winter_mae = abs(anom_temp_winter - model_temp_winter.mean(dim='numbe
 model_temp_summer_mae = abs(anom_temp_summer - model_temp_summer.mean(dim='number')).mean(dim='time')
 model_prec_winter_mae = abs(anom_prec_winter - model_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
 model_prec_summer_mae = abs(anom_prec_summer - model_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
+
+print(model_prec_winter_mae.max().values)
 
 # anomaly correlation coefficient
 model_temp_winter_acc = pearsonr(anom_temp_winter, model_temp_winter.mean(dim='number'), axis=0)
@@ -97,15 +109,15 @@ textwidth = 460 #405  # IJC
 rasterized=True
 palette = ['#ffffff', '#fef8de', '#fceda3', '#fdce67', '#fdaa31', '#f8812c', '#ed5729', '#da2f28', '#b81b22', '#921519']
 cmap = LinearSegmentedColormap.from_list("", palette)
-vmin, vmax = 0, 6
-levels = np.linspace(0, 6, 13)
+vmin, vmax = 0, 4
+levels = np.linspace(0, 4, 9)
 fig, axs = plt.subplots(
     3, 5, figsize=set_figsize(textwidth, .6, subplots=(3, 3)), layout="tight",
     sharex=True, sharey=True, gridspec_kw={'wspace':0, 'hspace':0.05, 'width_ratios' : [1,1,.05,1,1]},
     subplot_kw={'projection': ccrs.PlateCarree()}
 )
-axs[0,0].set_xlim(-20,40)
-axs[0,0].set_ylim(35,70)
+axs[0,0].set_xlim(lon_min, lon_max)
+axs[0,0].set_ylim(lat_min, lat_max)
 [axs[i,2].axis('off') for i in range(3)]
 [axs[i,j].coastlines() for j in range(2) for i in range(3)]
 [axs[i,j].coastlines() for j in range(3,5) for i in range(3)]
