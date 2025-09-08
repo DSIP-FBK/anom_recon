@@ -1,9 +1,10 @@
-import sys, os, random, glob
+import sys, os, glob, joblib
 import numpy as np
 import pandas as pd
 import xarray as xr
 import matplotlib.pyplot as plt
 from scipy.special import erf
+
 
 # torch
 sys.path.append("../")
@@ -61,7 +62,7 @@ def get_torch_models_infos(folder_path):
         months             = config['data']['months']
         train_last_date    = config['data']['train_last_date']
         val_last_date      = config['data']['val_last_date']
-
+        
         if i == 0:
             datamodule = AnomReconDataModule(
                 indexes_paths=indexes_paths,
@@ -72,6 +73,7 @@ def get_torch_models_infos(folder_path):
                 num_indexes=num_indexes,
                 train_last_date=train_last_date,
                 val_last_date=val_last_date,
+                scaler_path=f"{folder_path}/scaler.pkl"
                 )
             datamodule.setup(stage='test')
         
@@ -82,6 +84,7 @@ def get_torch_models_infos(folder_path):
             )
         
         models[i].eval()
+
     return models, datamodule, config
 
 def get_models_inputs(datamodule, start_year):
@@ -100,7 +103,7 @@ def get_models_inputs(datamodule, start_year):
 
     return years, months, times, static_data
 
-def get_model_out(model, years, months, times, indexes, static_data):
+def get_model_out(model, years, months, times, indexes, static_data, scaler):
     
     outputs = []
     for i in range(len(years)):
@@ -113,6 +116,10 @@ def get_model_out(model, years, months, times, indexes, static_data):
         x = years[i], months[i], index, static_data
         x = [el.unsqueeze(0) for el in x]
         outputs.append(model(x).squeeze(0).detach())
+    
+    # rescale
+    shape = np.shape(outputs)
+    outputs = scaler.inverse_transform(np.reshape(outputs, (shape[0], -1))).reshape(shape)
     
     return outputs
 
@@ -131,9 +138,11 @@ def get_models_out(models, indexes, anom, datamodule, start_year=1940):
     years = torch.tensor(indexes.time.dt.year.data - start_year)
     months = torch.tensor(indexes.time.dt.month.data)
     times = indexes.time
+    scaler = datamodule.scaler
 
     for number in range(1, len(models)+1):
-        model_out.loc[dict(time=times, number=number)] = get_model_out(models[number-1], years, months, times, indexes, static_data)
+        model_out.loc[dict(time=times, number=number)] = \
+            get_model_out(models[number-1], years, months, times, indexes, static_data, scaler)
         
     return model_out.dropna(dim='time')
 
@@ -150,12 +159,13 @@ def get_perturbed_models_out(models, pert_idxs, anom, datamodule, start_year=194
     )
 
     years, months, times, static_data = get_models_inputs(datamodule, start_year)
+    scaler = datamodule.scaler
 
 
     for realization in pert_idxs.realization:
         rel_idxs = pert_idxs.sel(realization=realization)
         for number in range(1, len(models)+1):
-            model_out.loc[dict(time=times, realization=realization, number=number)] = get_model_out(models[number-1], years, months, times, rel_idxs, static_data)
+            model_out.loc[dict(time=times, realization=realization, number=number)] = get_model_out(models[number-1], years, months, times, rel_idxs, static_data, scaler)
         
     return model_out.dropna(dim='time')
 
