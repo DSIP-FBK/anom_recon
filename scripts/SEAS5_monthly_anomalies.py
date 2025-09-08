@@ -7,27 +7,31 @@ import xarray as xr
 from functions import low_pass_weights, monthly_anom_from_clim
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--era5", help="path to the NetCDF input file containing the ERA5 data")
+#parser.add_argument("--era5", help="path to the NetCDF input file containing the ERA5 data")
 parser.add_argument("--seas5", help="path to the NetCDF input file containing the SEAS5 data")
 parser.add_argument("--out", help="path and filename of the output NetCDF file" )
 parser.add_argument("--clim_start", help="(str) start date of the climatology period (e.g. 1981-01-01)")
 parser.add_argument("--clim_end", help="(str) end date of the climatology period (e.g. 2010-12-31)")
 args = parser.parse_args()
 
+# parameters
+g = 9.80665  # m s^-2
+
 print('Reading NetCDF...')
-era5 = xr.open_dataarray(args.era5).sel(time=slice(args.clim_start, args.clim_end))
+#era5 = xr.open_dataarray(args.era5).sel(time=slice(args.clim_start, args.clim_end))
 seas5 = xr.open_dataarray(args.seas5).sel(latitude=slice(None, 30), longitude=slice(-80, 40))
 
 #print('Computing climatology...')
 # calendar day climatology
 #cal_clim = era5.groupby('time.dayofyear').mean().pad(dayofyear=7, mode='wrap').rolling(center=True, dayofyear=15).mean().dropna(dim='dayofyear')
-if 'z500' in args.era5:
+if 'z500' in args.seas5:
     name = 'z500'
     method = 'mean'
-elif 't2m' in args.era5:
+    seas5 = seas5 / g
+elif 't2m' in args.seas5:
     name = 't2m'
     method = 'mean'
-elif 'tp' in args.era5:
+elif 'tp' in args.seas5:
     name = 'tp'
     method = 'sum'
 cal_clim = xr.open_dataarray(f'../scripts/data/cal_clim_{name}_{args.clim_start}-{args.clim_end}.nc')
