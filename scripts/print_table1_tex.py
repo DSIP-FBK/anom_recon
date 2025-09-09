@@ -33,7 +33,9 @@ parser.add_argument("-wr0_temp", type=str, help="path to the folder containing t
 parser.add_argument("-wr0_prec", type=str, help="path to the folder containing the model trained with 0WR to reconstruct precipitation" )
 args = parser.parse_args()
 
-# seasons
+# parameters
+lat_min, lat_max = 35, 70
+lon_min, lon_max = -20, 30
 winter_months = (12,1,2)
 summer_months = (6,7,8)
 
@@ -50,92 +52,120 @@ torch_model, datamodule, config = get_torch_models_infos(args.wr7_temp)
 idxs_7wr_temp          = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_7wr_temp          = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_7wr_temp         = get_models_out(torch_model, idxs_7wr_temp, anom_7wr_temp, datamodule)
-model_7wr_temp_winter  = model_7wr_temp[np.isin(model_7wr_temp.time.dt.month, winter_months)]
-anom_7wr_temp_winter   = anom_7wr_temp[np.isin(anom_7wr_temp.time.dt.month, winter_months)]
-model_7wr_temp_summer  = model_7wr_temp[np.isin(model_7wr_temp.time.dt.month, summer_months)]
-anom_7wr_temp_summer   = anom_7wr_temp[np.isin(anom_7wr_temp.time.dt.month, summer_months)]
 
 # 7WR on precipitation
 torch_model, datamodule, config = get_torch_models_infos(args.wr7_prec)
 idxs_7wr_prec          = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_7wr_prec          = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_7wr_prec         = get_models_out(torch_model, idxs_7wr_prec, anom_7wr_prec, datamodule)
-model_7wr_prec_winter  = model_7wr_prec[np.isin(model_7wr_prec.time.dt.month, winter_months)]
-anom_7wr_prec_winter   = anom_7wr_prec[np.isin(anom_7wr_prec.time.dt.month, winter_months)]
-model_7wr_prec_summer  = model_7wr_prec[np.isin(model_7wr_prec.time.dt.month, summer_months)]
-anom_7wr_prec_summer   = anom_7wr_prec[np.isin(anom_7wr_prec.time.dt.month, summer_months)]
 
 # 4WR on temprature (winter)
 torch_model, datamodule, config = get_torch_models_infos(args.wr4_temp_winter)
 idxs_4wr_temp_winter            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_4wr_temp_winter            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_4wr_temp_winter           = get_models_out(torch_model, idxs_4wr_temp_winter, anom_4wr_temp_winter, datamodule)
-anom_4wr_temp_winter            = anom_4wr_temp_winter[np.isin(anom_4wr_temp_winter.time.dt.month, winter_months)]
 
 # 4WR on temprature (summer)
 torch_model, datamodule, config = get_torch_models_infos(args.wr4_temp_summer)
 idxs_4wr_temp_summer            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_4wr_temp_summer            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_4wr_temp_summer           = get_models_out(torch_model, idxs_4wr_temp_summer, anom_4wr_temp_summer, datamodule)
-anom_4wr_temp_summer            = anom_4wr_temp_summer[np.isin(anom_4wr_temp_summer.time.dt.month, summer_months)]
 
 # 4WR on precipitation (winter)
 torch_model, datamodule, config = get_torch_models_infos(args.wr4_prec_winter)
 idxs_4wr_prec_winter            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_4wr_prec_winter            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_4wr_prec_winter           = get_models_out(torch_model, idxs_4wr_prec_winter, anom_4wr_prec_winter, datamodule)
-anom_4wr_prec_winter            = anom_4wr_prec_winter[np.isin(anom_4wr_prec_winter.time.dt.month, winter_months)]
 
 # 4WR on precipitation (summer)
 torch_model, datamodule, config = get_torch_models_infos(args.wr4_prec_summer)
 idxs_4wr_prec_summer            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_4wr_prec_summer            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_4wr_prec_summer           = get_models_out(torch_model, idxs_4wr_prec_summer, anom_4wr_prec_summer, datamodule)
-anom_4wr_prec_summer            = anom_4wr_prec_summer[np.isin(anom_4wr_prec_summer.time.dt.month, summer_months)]
 
 # NAO on temprature (winter)
 torch_model, datamodule, config = get_torch_models_infos(args.NAO_temp_winter)
 idxs_NAO_temp_winter            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_NAO_temp_winter            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_NAO_temp_winter           = get_models_out(torch_model, idxs_NAO_temp_winter, anom_NAO_temp_winter, datamodule)
-anom_NAO_temp_winter            = anom_NAO_temp_winter[np.isin(anom_NAO_temp_winter.time.dt.month, winter_months)]
 
 # NAO on temprature (summer)
 torch_model, datamodule, config = get_torch_models_infos(args.NAO_temp_summer)
 idxs_NAO_temp_summer            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_NAO_temp_summer            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_NAO_temp_summer           = get_models_out(torch_model, idxs_NAO_temp_summer, anom_NAO_temp_summer, datamodule)
-anom_NAO_temp_summer            = anom_NAO_temp_summer[np.isin(anom_NAO_temp_summer.time.dt.month, summer_months)]
 
 # NAO on precipitation (winter)
 torch_model, datamodule, config = get_torch_models_infos(args.NAO_prec_winter)
 idxs_NAO_prec_winter            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_NAO_prec_winter            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_NAO_prec_winter           = get_models_out(torch_model, idxs_NAO_prec_winter, anom_NAO_prec_winter, datamodule)
-anom_NAO_prec_winter            = anom_NAO_prec_winter[np.isin(anom_NAO_prec_winter.time.dt.month, winter_months)]
 
 # NAO on precipitation (summer)
 torch_model, datamodule, config = get_torch_models_infos(args.NAO_prec_summer)
 idxs_NAO_prec_summer            = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_NAO_prec_summer            = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_NAO_prec_summer           = get_models_out(torch_model, idxs_NAO_prec_summer, anom_NAO_prec_summer, datamodule)
-anom_NAO_prec_summer            = anom_NAO_prec_summer[np.isin(anom_NAO_prec_summer.time.dt.month, summer_months)]
 
 # 0WR on temprature
 torch_model, datamodule, config = get_torch_models_infos(args.wr0_temp)
 idxs_0wr_temp          = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_0wr_temp          = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_0wr_temp         = get_models_out(torch_model, idxs_0wr_temp, anom_0wr_temp, datamodule)
-model_0wr_temp_winter  = model_0wr_temp[np.isin(model_0wr_temp.time.dt.month, winter_months)]
-anom_0wr_temp_winter   = anom_0wr_temp[np.isin(anom_0wr_temp.time.dt.month, winter_months)]
-model_0wr_temp_summer  = model_0wr_temp[np.isin(model_0wr_temp.time.dt.month, summer_months)]
-anom_0wr_temp_summer   = anom_0wr_temp[np.isin(anom_0wr_temp.time.dt.month, summer_months)]
 
 # 0WR on precipitation
 torch_model, datamodule, config = get_torch_models_infos(args.wr0_prec)
 idxs_0wr_prec          = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
 anom_0wr_prec          = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
 model_0wr_prec         = get_models_out(torch_model, idxs_0wr_prec, anom_0wr_prec, datamodule)
+
+# crop to europe
+anom_7wr_temp = anom_7wr_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_7wr_temp = model_7wr_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_7wr_prec = anom_7wr_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_7wr_prec = model_7wr_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
+anom_4wr_temp_winter = anom_4wr_temp_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_4wr_temp_winter = model_4wr_temp_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_4wr_prec_winter = anom_4wr_prec_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_4wr_prec_winter = model_4wr_prec_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
+anom_NAO_temp_winter = anom_NAO_temp_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_NAO_temp_winter = model_NAO_temp_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_NAO_prec_winter = anom_NAO_prec_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_NAO_prec_winter = model_NAO_prec_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
+anom_0wr_temp = anom_0wr_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_0wr_temp = model_0wr_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anom_0wr_prec = anom_0wr_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_0wr_prec = model_0wr_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
+# seasons
+model_7wr_temp_winter  = model_7wr_temp[np.isin(model_7wr_temp.time.dt.month, winter_months)]
+anom_7wr_temp_winter   = anom_7wr_temp[np.isin(anom_7wr_temp.time.dt.month, winter_months)]
+model_7wr_temp_summer  = model_7wr_temp[np.isin(model_7wr_temp.time.dt.month, summer_months)]
+anom_7wr_temp_summer   = anom_7wr_temp[np.isin(anom_7wr_temp.time.dt.month, summer_months)]
+
+model_7wr_prec_winter  = model_7wr_prec[np.isin(model_7wr_prec.time.dt.month, winter_months)]
+anom_7wr_prec_winter   = anom_7wr_prec[np.isin(anom_7wr_prec.time.dt.month, winter_months)]
+model_7wr_prec_summer  = model_7wr_prec[np.isin(model_7wr_prec.time.dt.month, summer_months)]
+anom_7wr_prec_summer   = anom_7wr_prec[np.isin(anom_7wr_prec.time.dt.month, summer_months)]
+
+anom_4wr_temp_winter   = anom_4wr_temp_winter[np.isin(anom_4wr_temp_winter.time.dt.month, winter_months)]
+anom_4wr_temp_summer   = anom_4wr_temp_summer[np.isin(anom_4wr_temp_summer.time.dt.month, summer_months)]
+anom_4wr_prec_winter   = anom_4wr_prec_winter[np.isin(anom_4wr_prec_winter.time.dt.month, winter_months)]
+anom_4wr_prec_summer   = anom_4wr_prec_summer[np.isin(anom_4wr_prec_summer.time.dt.month, summer_months)]
+
+anom_NAO_temp_winter   = anom_NAO_temp_winter[np.isin(anom_NAO_temp_winter.time.dt.month, winter_months)]
+anom_NAO_temp_summer   = anom_NAO_temp_summer[np.isin(anom_NAO_temp_summer.time.dt.month, summer_months)]
+anom_NAO_prec_winter   = anom_NAO_prec_winter[np.isin(anom_NAO_prec_winter.time.dt.month, winter_months)]
+anom_NAO_prec_summer   = anom_NAO_prec_summer[np.isin(anom_NAO_prec_summer.time.dt.month, summer_months)]
+
+model_0wr_temp_winter  = model_0wr_temp[np.isin(model_0wr_temp.time.dt.month, winter_months)]
+anom_0wr_temp_winter   = anom_0wr_temp[np.isin(anom_0wr_temp.time.dt.month, winter_months)]
+model_0wr_temp_summer  = model_0wr_temp[np.isin(model_0wr_temp.time.dt.month, summer_months)]
+anom_0wr_temp_summer   = anom_0wr_temp[np.isin(anom_0wr_temp.time.dt.month, summer_months)]
+
 model_0wr_prec_winter  = model_0wr_prec[np.isin(model_0wr_prec.time.dt.month, winter_months)]
 anom_0wr_prec_winter   = anom_0wr_prec[np.isin(anom_0wr_prec.time.dt.month, winter_months)]
 model_0wr_prec_summer  = model_0wr_prec[np.isin(model_0wr_prec.time.dt.month, summer_months)]
@@ -178,7 +208,6 @@ model_NAO_prec_summer = model_NAO_prec_summer.sel(time=slice(start, end))
 model_0wr_prec_summer = model_0wr_prec_summer.sel(time=slice(start, end))
 
 
-
 # --------------
 # Compute skills
 # --------------
@@ -194,14 +223,14 @@ model_NAOT_summer_MAE = abs(anom_NAO_temp_summer - model_NAO_temp_summer.mean(di
 model_0wrT_winter_MAE = abs(anom_0wr_temp_winter - model_0wr_temp_winter.mean(dim='number')).mean(dim='time')
 model_0wrT_summer_MAE = abs(anom_0wr_temp_summer - model_0wr_temp_summer.mean(dim='number')).mean(dim='time')
 
-model_7wrP_winter_MAE = abs(anom_7wr_prec_winter - model_7wr_prec_winter.mean(dim='number')).mean(dim='time')
-model_7wrP_summer_MAE = abs(anom_7wr_prec_summer - model_7wr_prec_summer.mean(dim='number')).mean(dim='time')
-model_4wrP_winter_MAE = abs(anom_4wr_prec_winter - model_4wr_prec_winter.mean(dim='number')).mean(dim='time')
-model_4wrP_summer_MAE = abs(anom_4wr_prec_summer - model_4wr_prec_summer.mean(dim='number')).mean(dim='time')
-model_NAOP_winter_MAE = abs(anom_NAO_prec_winter - model_NAO_prec_winter.mean(dim='number')).mean(dim='time')
-model_NAOP_summer_MAE = abs(anom_NAO_prec_summer - model_NAO_prec_summer.mean(dim='number')).mean(dim='time')
-model_0wrP_winter_MAE = abs(anom_0wr_prec_winter - model_0wr_prec_winter.mean(dim='number')).mean(dim='time')
-model_0wrP_summer_MAE = abs(anom_0wr_prec_summer - model_0wr_prec_summer.mean(dim='number')).mean(dim='time')
+model_7wrP_winter_MAE = abs(anom_7wr_prec_winter - model_7wr_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_7wrP_summer_MAE = abs(anom_7wr_prec_summer - model_7wr_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_4wrP_winter_MAE = abs(anom_4wr_prec_winter - model_4wr_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_4wrP_summer_MAE = abs(anom_4wr_prec_summer - model_4wr_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_NAOP_winter_MAE = abs(anom_NAO_prec_winter - model_NAO_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_NAOP_summer_MAE = abs(anom_NAO_prec_summer - model_NAO_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_0wrP_winter_MAE = abs(anom_0wr_prec_winter - model_0wr_prec_winter.mean(dim='number')).mean(dim='time') * 100 # m to cm
+model_0wrP_summer_MAE = abs(anom_0wr_prec_summer - model_0wr_prec_summer.mean(dim='number')).mean(dim='time') * 100 # m to cm
 
 # anomaly correlation coefficient
 model_7wrT_winter_ACC = xr.corr(anom_7wr_temp_winter, model_7wr_temp_winter.mean(dim='number'), dim='time')
@@ -259,21 +288,21 @@ model_NAOT_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
 mae = abs(anom_0wr_temp_summer - model_0wr_temp_summer).mean(dim='time').median(dim=['lat', 'lon'])
 model_0wrT_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
 
-mae = abs(anom_7wr_prec_winter - model_7wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_7wr_prec_winter - model_7wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_7wrP_winter_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_4wr_prec_winter - model_4wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_4wr_prec_winter - model_4wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_4wrP_winter_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_NAO_prec_winter - model_NAO_prec_winter).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_NAO_prec_winter - model_NAO_prec_winter).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_NAOP_winter_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_0wr_prec_winter - model_0wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_0wr_prec_winter - model_0wr_prec_winter).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_0wrP_winter_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_7wr_prec_summer - model_7wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_7wr_prec_summer - model_7wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_7wrP_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_4wr_prec_summer - model_4wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_4wr_prec_summer - model_4wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_4wrP_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_NAO_prec_summer - model_NAO_prec_summer).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_NAO_prec_summer - model_NAO_prec_summer).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_NAOP_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
-mae = abs(anom_0wr_prec_summer - model_0wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon'])
+mae = abs(anom_0wr_prec_summer - model_0wr_prec_summer).mean(dim='time').median(dim=['lat', 'lon']) * 100 # m to cm
 model_0wrP_summer_MAE_err = (mae.max() - mae.min()).values / 2 * 100
 
 # models uncertainty ACC
