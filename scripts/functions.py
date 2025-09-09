@@ -169,7 +169,7 @@ def get_perturbed_models_out(models, pert_idxs, anom, datamodule, start_year=194
         
     return model_out.dropna(dim='time')
 
-def models_with_SEAS5_indexes(models, seas5_idxs, anom, datamodule, start_year=1940):
+def models_with_SEAS5_indexes(models, seas5_idxs, anom, datamodule):
 
     models_seas5_index = xr.DataArray(
         dims=['time', 'lat', 'lon', 'forecastMonth', 'ensemble_member', 'number'],
