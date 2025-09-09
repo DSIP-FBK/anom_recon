@@ -286,9 +286,9 @@ def get_composite(var, mask, clim_start, clim_end):
         cluster_composite[dict(mode=c)] = var_clim[mask_clim[c,:]].mean(dim='time')
 
     # no regime
-    no_regime_temp_anom = var_clim[(~mask_clim).all(dim='mode')].mean(dim='time')
+    no_regime_anom = var_clim[(~mask_clim).all(dim='mode')].mean(dim='time')
 
-    return cluster_composite, no_regime_temp_anom
+    return cluster_composite, no_regime_anom
 
 
 def get_composite_recon(var, Iwr, clim_start, clim_end, months=None):
