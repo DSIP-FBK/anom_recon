@@ -33,6 +33,9 @@ else:
     print('--season must be winter or summer')
     exit(0)
 
+# land sea mask
+lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
+
 # models on temprature
 torch_modelsT, datamoduleT, configT = get_torch_models_infos(args.model_temp)
 model_anomT     = xr.open_dataarray(configT['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
@@ -56,6 +59,7 @@ anom_seas5P      = xr.open_dataarray(args.seas5_prec)\
 anom_seas5P_sea  = get_SEAS5_season(anom_seas5P, args.season)
 
 # cut to the European region
+lsm             = lsm.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 model_anomT_sea = model_anomT_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 model_anomP_sea = model_anomP_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 anom_seas5T_sea = anom_seas5T_sea.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
@@ -73,14 +77,13 @@ anom_seas5T_sea = anom_seas5T_sea.sel(time=common_time)
 anom_seas5P_sea = anom_seas5P_sea.sel(time=common_time)
 
 # mask outside land
-lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
 model_anomT_sea = model_anomT_sea.where(lsm > .8)
 model_anomP_sea = model_anomP_sea.where(lsm > .8)
 anom_seas5T_sea = anom_seas5T_sea.where(lsm > .8)
 anom_seas5P_sea = anom_seas5P_sea.where(lsm > .8)
 
 # SEAS5 skills temperature. Note: model_anomX_sea is ERA5 anomaly of X
-seas5T_sea_mae     = abs(model_anomT_sea - anom_seas5T_sea).median(dim='time')
+seas5T_sea_mae     = abs(model_anomT_sea - anom_seas5T_sea).mean(dim='time')
 seas5T_sea_acc     = xr.corr(model_anomT_sea, anom_seas5T_sea, dim='time')
 seas5T_sea_ce      = get_ce(model_anomT_sea, anom_seas5T_sea)
 seas5T_sea_med_mae = seas5T_sea_mae.median().data
@@ -88,7 +91,7 @@ seas5T_sea_med_acc = seas5T_sea_acc.median().data
 seas5T_sea_med_ce  = seas5T_sea_ce.median().data
 
 # SEAS5 skills precipitation
-seas5P_sea_mae     = abs(model_anomP_sea - anom_seas5P_sea).median(dim='time')
+seas5P_sea_mae     = abs(model_anomP_sea - anom_seas5P_sea).mean(dim='time')
 seas5P_sea_acc     = xr.corr(model_anomP_sea, anom_seas5P_sea, dim='time')
 seas5P_sea_ce      = get_ce(model_anomP_sea, anom_seas5P_sea)
 seas5P_sea_med_mae = seas5P_sea_mae.median().data
@@ -99,7 +102,6 @@ seas5P_sea_med_ce  = seas5P_sea_ce.median().data
 # ------------------------
 # Loop for the temperature
 # ------------------------
-"""
 mare     = 0.
 eps      = .2
 mean_err = 0
@@ -122,13 +124,14 @@ while mare <= max_mare:
     # compute temperature from perturbed indexes
     pert_idxsT       = generate_perturbed_indexes(idxsT, idx_mare=mare, idx_mre=mean_err, N=N)
     pert_modelsT     = get_perturbed_models_out(torch_modelsT, pert_idxsT, model_anomT, datamoduleT)\
-                        .sel(time=common_time).mean(dim='number')    
+                        .sel(time=common_time, lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max)).\
+                            mean(dim='number')    
     pert_modelsT     = pert_modelsT.where(lsm > .8)
     pert_modelsT_sea = pert_modelsT[:, np.isin(pert_modelsT.time.dt.month, months)]
 
     # skills
-    pert_modelsT_sea_med_mae.append(abs(model_anomT_sea - pert_modelsT_sea).median().data)
-    pert_modelsT_sea_med_acc.append(xr.corr(model_anomT_sea, pert_modelsT_sea, dim='time').median())
+    pert_modelsT_sea_med_mae.append(abs(model_anomT_sea - pert_modelsT_sea).mean(dim='time').median().data)
+    pert_modelsT_sea_med_acc.append(xr.corr(model_anomT_sea, pert_modelsT_sea, dim='time').median().data)
     pert_modelsT_sea_med_ce.append(
         get_ce(model_anomT_sea, pert_modelsT_sea).median().data
     )
@@ -141,7 +144,8 @@ np.save(f'data/seas5T_{args.season}_med_mae_acc_ce_{N}_{args.start}-{end}.npy', 
 np.save(f'data/pert_modelsT_{args.season}_med_mae_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_mae)
 np.save(f'data/pert_modelsT_{args.season}_med_acc_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_acc)
 np.save(f'data/pert_modelsT_{args.season}_med_ce_{N}_{args.start}-{end}.npy', pert_modelsT_sea_med_ce)
-"""
+
+
 # --------------------------
 # Loop for the precipitation
 # --------------------------
@@ -167,13 +171,14 @@ while mare <= max_mare:
     # compute precipitation from perturbed indexes
     pert_idxsP       = generate_perturbed_indexes(idxsP, idx_mare=mare, idx_mre=mean_err, N=N)
     pert_modelsP     = get_perturbed_models_out(torch_modelsP, pert_idxsP, model_anomP, datamoduleP)\
-                        .sel(time=common_time).mean(dim='number')
+                        .sel(time=common_time, lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))\
+                            .mean(dim='number')
     pert_modelsP     = pert_modelsP.where(lsm > .8)
     pert_modelsP_sea = pert_modelsP[:, np.isin(pert_modelsP.time.dt.month, months)]
 
     # skills
-    pert_modelsP_sea_med_mae.append(abs(model_anomP_sea - pert_modelsP_sea).median().data)
-    pert_modelsP_sea_med_acc.append(xr.corr(model_anomP_sea, pert_modelsP_sea, dim='time').median())
+    pert_modelsP_sea_med_mae.append(abs(model_anomP_sea - pert_modelsP_sea).mean(dim='time').median().data)
+    pert_modelsP_sea_med_acc.append(xr.corr(model_anomP_sea, pert_modelsP_sea, dim='time').median().data)
     pert_modelsP_sea_med_ce.append(
         get_ce(model_anomP_sea, pert_modelsP_sea).median().data
     )
