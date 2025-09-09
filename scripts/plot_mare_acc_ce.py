@@ -58,8 +58,7 @@ seas5P_summer_med_mae, seas5P_summer_med_acc, seas5P_summer_med_ce = np.load(arg
 # ------------
 # Plot
 # ------------
-# columnwidth = 248.9  # QJRMS
-columnwidth = 205 # 197.5  # IJC
+columnwidth = 205
 prec_color  = '#204487'
 temp_color  = '#b81b22'
 fig, [row1, row2] = plt.subplots(
@@ -71,7 +70,7 @@ row1.set_ylabel('ACC and CE')
 row2.set_ylabel('ACC and CE')
 row2.set_xlim(-10, 210)
 row1.set_ylim(-1, .8)
-row2.set_ylim(-.5, 0.65)
+row2.set_ylim(-1, .8)
 
 # winter temperature
 x = np.arange(0, 220, 20)
@@ -109,7 +108,7 @@ legend_elements = [
 ]
 fig.legend(
     handles=legend_elements, ncol=2, loc='upper center',
-    bbox_to_anchor=(0.35, 1.5), bbox_transform=row1.transAxes
+    bbox_to_anchor=(0.4, 1.5), bbox_transform=row1.transAxes
     )
 
 row1.set_yticks([-0.5, 0, 0.5])
