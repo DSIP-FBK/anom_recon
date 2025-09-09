@@ -41,7 +41,9 @@ parser.add_argument("--model_seas5_prec", type=str, help="path to the file conta
 parser.add_argument("--start", type=str, default='2011', help="start date of the analysis (default 2011)")
 args = parser.parse_args()
 
-# seasons
+# perameters
+lat_min, lat_max = 35, 70
+lon_min, lon_max = -20, 30
 winter_months = (12,1,2)
 summer_months = (6,7,8)
 
@@ -55,19 +57,32 @@ print('Loading models and SEAS5...')
 anomT      = xr.open_dataarray(args.anom_temp).rename({'latitude': 'lat', 'longitude': 'lon'})
 anomP      = xr.open_dataarray(args.anom_prec).rename({'latitude': 'lat', 'longitude': 'lon'})
 
-# SEAS5 winter and summer for temperature and precipitation
+# SEAS5 temperature and precipitation
 seas5T      = xr.open_dataarray(args.seas5_temp).rename({'latitude': 'lat', 'longitude': 'lon'})#.transpose('time', 'lat', 'lon', 'number', 'forecastMonth')
-seas5T_DJF  = get_SEAS5_season(seas5T, 'winter')
-seas5T_JJA  = get_SEAS5_season(seas5T, 'summer')
-
 seas5P      = xr.open_dataarray(args.seas5_prec).rename({'latitude': 'lat', 'longitude': 'lon'})#.transpose('time', 'lat', 'lon', 'number', 'forecastMonth')
-seas5P_DJF  = get_SEAS5_season(seas5P, 'winter')
-seas5P_JJA  = get_SEAS5_season(seas5P, 'summer')
 
+# model with SEAS5 indices
 model_seas5T = xr.open_dataarray(args.model_seas5_temp)
 model_seas5P = xr.open_dataarray(args.model_seas5_prec)
 
+# land sea mask
+lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
+
+# crop to european region
+anomT        = anomT.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+anomP        = anomP.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+seas5T       = seas5T.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+seas5P       = seas5P.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_seas5T = model_seas5T.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_seas5P = model_seas5P.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+lsm          = lsm.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+
 # seasons
+seas5T_DJF  = get_SEAS5_season(seas5T, 'winter')
+seas5T_JJA  = get_SEAS5_season(seas5T, 'summer')
+seas5P_DJF  = get_SEAS5_season(seas5P, 'winter')
+seas5P_JJA  = get_SEAS5_season(seas5P, 'summer')
+
 anomT_DJF            = anomT[np.isin(anomT.time.dt.month, winter_months)]
 anomT_JJA            = anomT[np.isin(anomT.time.dt.month, summer_months)]
 model_seas5_7wrT_DJF = get_SEAS5_season(model_seas5T, 'winter')
@@ -79,7 +94,7 @@ model_seas5_7wrP_DJF = get_SEAS5_season(model_seas5P, 'winter')
 model_seas5_7wrP_JJA = get_SEAS5_season(model_seas5P, 'summer')
 
 # reduce all variables to common time-range
-start, end           = args.start, '2024'
+start, end = args.start, '2024'
 common_time_DJF = np.intersect1d(
     anomT_DJF.sel(time=slice(args.start, end)).time.values, 
     seas5T_DJF.sel(time=slice(args.start, end)).time.values
@@ -136,14 +151,14 @@ print('Computing skills...')
 # model mean absolute error
 model_seas5_7wrT_DJF_MAE = abs(anomT_DJF - model_seas5_7wrT_DJF).mean(dim='time')
 model_seas5_7wrT_JJA_MAE = abs(anomT_JJA - model_seas5_7wrT_JJA).mean(dim='time')
-model_seas5_7wrP_DJF_MAE = abs(anomP_DJF - model_seas5_7wrP_DJF).mean(dim='time')
-model_seas5_7wrP_JJA_MAE = abs(anomP_JJA - model_seas5_7wrP_JJA).mean(dim='time')
+model_seas5_7wrP_DJF_MAE = abs(anomP_DJF - model_seas5_7wrP_DJF).mean(dim='time') * 100 # m to cm
+model_seas5_7wrP_JJA_MAE = abs(anomP_JJA - model_seas5_7wrP_JJA).mean(dim='time') * 100 # m to cm
 
 # SEAS5 mean absolute error
 seas5T_DJF_MAE = abs(anomT_DJF - seas5T_DJF).mean(dim='time')
 seas5T_JJA_MAE = abs(anomT_JJA - seas5T_JJA).mean(dim='time')
-seas5P_DJF_MAE = abs(anomP_DJF - seas5P_DJF).mean(dim='time')
-seas5P_JJA_MAE = abs(anomP_JJA - seas5P_JJA).mean(dim='time')
+seas5P_DJF_MAE = abs(anomP_DJF - seas5P_DJF).mean(dim='time') * 100 # m to cm
+seas5P_JJA_MAE = abs(anomP_JJA - seas5P_JJA).mean(dim='time') * 100 # m to cm
 
 # model anomaly correlation coefficient
 model_seas5_7wrT_DJF_ACC = xr.corr(anomT_DJF, model_seas5_7wrT_DJF, dim='time')
@@ -170,7 +185,6 @@ seas5P_DJF_CE = get_ce(anomP_DJF, seas5P_DJF)
 seas5P_JJA_CE = get_ce(anomP_JJA, seas5P_JJA)
 
 # mask outside land
-lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
 model_seas5_7wrT_DJF_MAE = model_seas5_7wrT_DJF_MAE.where(lsm > .8)
 model_seas5_7wrT_JJA_MAE = model_seas5_7wrT_JJA_MAE.where(lsm > .8)
 model_seas5_7wrP_DJF_MAE = model_seas5_7wrP_DJF_MAE.where(lsm > .8)
@@ -207,12 +221,11 @@ seas5P_JJA_CE = seas5P_JJA_CE.where(lsm > .8)
 # seas5P_DJF_CE = xr.where(seas5P_DJF_CE < threshold, threshold, seas5P_DJF_CE)
 # seas5P_JJA_CE = xr.where(seas5P_JJA_CE < threshold, threshold, seas5P_JJA_CE)
 
-
 # -----------
 # Plot skills
 # -----------
 print('Plotting skills...')
-columnwidth = 196.1  # IJC
+columnwidth = 196.1
 seas5_color = '#b81b22'
 model_color = '#204487'
 fig, axs = plt.subplots(
@@ -227,7 +240,7 @@ axs[1,0].set_ylabel('ACC')
 axs[2,0].set_ylabel('CE')
 axs[0,1].text(1.2, 1.15, 'precipitation', transform=axs[0,0].transAxes)
 
-axs[0,0].set_ylim(0, 1.5)
+axs[0,0].set_ylim(0, 4)
 axs[1,0].set_ylim(-1, 1)
 axs[2,0].set_ylim(-1, 1)
 
@@ -290,7 +303,7 @@ fig.legend(handles=legend_elements, ncol=2, loc='upper left',  bbox_to_anchor=(-
 axs[2,0].set_xticklabels(['DJF', 'JJA'])
 [axs[i,j].tick_params(axis='x', which='both', top=False) for i in range(3) for j in range(2)]
 [axs[i,j].tick_params(axis='x', which='both', bottom=False) for i in range(3) for j in range(2)]
-axs[0,0].set_yticks([0.5, 1, 1.5])
+axs[0,0].set_yticks([1, 2, 3])
 axs[1,0].set_yticks([-0.5, 0, 0.5])
 axs[2,0].set_yticks([-0.5, 0, 0.5])
 

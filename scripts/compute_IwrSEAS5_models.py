@@ -21,8 +21,6 @@ parser.add_argument("--start", type=str, help="start date of the analysis")
 args = parser.parse_args()
 
 # parameters
-lat_min, lat_max = 35, 70
-lon_min, lon_max = -20, 30
 winter_months = (12,1,2)
 summer_months = (6,7,8)
 
@@ -38,13 +36,11 @@ idxs_seas5_7wr = xr.open_dataarray(args.Iwr_SEAS5)
 # models on temprature
 torch_models, datamodule, config = get_torch_models_infos(args.model_temp)
 anomT                = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
-anomT                = anomT.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 model_seas5_7wrT     = models_with_SEAS5_indexes(torch_models, idxs_seas5_7wr, anomT, datamodule)
 
 # models on precipitation
 torch_models, datamodule, config = get_torch_models_infos(args.model_prec)
 anomP                = xr.open_dataarray(config['data']['anomalies_path']).rename({'latitude': 'lat', 'longitude': 'lon'})
-anomP                = anomP.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 model_seas5_7wrP     = models_with_SEAS5_indexes(torch_models, idxs_seas5_7wr, anomP, datamodule)
 
 # save
