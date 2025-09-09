@@ -1,7 +1,6 @@
-import argparse, sys
+import argparse
 import numpy as np
 import xarray as xr
-from scipy.stats import pearsonr
 
 # plotting
 import matplotlib as mpl
@@ -15,21 +14,25 @@ import cartopy.feature as cfeature
 from functions import get_composite_recon, get_ce, get_models_out, get_torch_models_infos, set_figsize
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--indices", nargs="+", help="path to the NetCDF containing the monthly WR indices")
+parser.add_argument("--indices", help="path to the NetCDF containing the monthly WR indices")
 parser.add_argument("--temp_anom", help="path to the NetCDF containing the monthly temperature anomalies")
 parser.add_argument("--prec_anom", help="path to the NetCDF containing the monthly precipitation anomalies")
-parser.add_argument("--temp_model", nargs="+", type=str, help="path to the folder containing the trained model for temperature")
-parser.add_argument("--prec_model", nargs="+", type=str, help="path to the folder containing the trained model for precipitation")
+parser.add_argument("--temp_model", type=str, help="path to the folder containing the trained model for temperature")
+parser.add_argument("--prec_model", type=str, help="path to the folder containing the trained model for precipitation")
 parser.add_argument("--clim_start", help="(str) start date of the climatology period (e.g. 1981-01-01)")
 parser.add_argument("--clim_end", help="(str) end date of the climatology period (e.g. 2010-12-31)")
-parser.add_argument("--start", help="(str) start of the comparison (e.g. 2005-01-01)")
+parser.add_argument("--start", help="(str) start of the comparison (e.g. 2011-01-01)")
 args = parser.parse_args()
 
+# parameters
+lat_min, lat_max = 35, 70
+lon_min, lon_max = -20, 30
+
 # load data
-monthly_Iwr = xr.concat([xr.open_dataarray(path) for path in args.indices], dim="time").sortby('time')
+monthly_Iwr  = xr.open_dataarray(args.indices)
 monthly_temp = xr.open_dataarray(args.temp_anom).rename({'latitude': 'lat', 'longitude': 'lon'})
 monthly_prec = xr.open_dataarray(args.prec_anom).rename({'latitude': 'lat', 'longitude': 'lon'})
-n_clusters = len(monthly_Iwr.mode)
+n_clusters   = len(monthly_Iwr.mode)
 
 # get composite reconstruction
 composite_temp_recon_winter = get_composite_recon(monthly_temp, monthly_Iwr, args.clim_start, args.clim_end, months=(1,2,12))
@@ -37,27 +40,31 @@ composite_temp_recon_summer = get_composite_recon(monthly_temp, monthly_Iwr, arg
 composite_prec_recon_winter = get_composite_recon(monthly_prec, monthly_Iwr, args.clim_start, args.clim_end, months=(1,2,12))
 composite_prec_recon_summer = get_composite_recon(monthly_prec, monthly_Iwr, args.clim_start, args.clim_end, months=(6,7,8))
 
-# get ai-model reconstruction
-model_temp_recon = []
-for model in args.temp_model:
-    torch_model, datamodule, config = get_torch_models_infos(model)
-    idxs_temp  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
-    model_temp_recon.append(get_models_out(torch_model, idxs_temp, monthly_temp, datamodule))
-model_temp_recon = xr.concat(model_temp_recon, dim='time').sortby('time')
+# get AI-model reconstruction
+torch_model, datamodule, config = get_torch_models_infos(args.temp_model)
+idxs_temp  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
+model_temp_recon = get_models_out(torch_model, idxs_temp, monthly_temp, datamodule)
 
-model_prec_recon = []
-for model in args.prec_model:
-    torch_model, datamodule, config = get_torch_models_infos(model)
-    idxs_prec  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
-    model_prec_recon.append(get_models_out(torch_model, idxs_prec, monthly_prec, datamodule))
-model_prec_recon = xr.concat(model_prec_recon, dim='time').sortby('time')
+torch_model, datamodule, config = get_torch_models_infos(args.prec_model)
+idxs_prec  = xr.open_dataarray(config['data']['indexes_paths'][0]).sel(mode=slice(1, config['data']['num_indexes'][0]))
+model_prec_recon = get_models_out(torch_model, idxs_prec, monthly_prec, datamodule)
+
+# crop to europe
+monthly_temp                = monthly_temp.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+monthly_prec                = monthly_prec.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_temp_recon            = model_temp_recon.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+model_prec_recon            = model_prec_recon.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+composite_temp_recon_winter = composite_temp_recon_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+composite_temp_recon_summer = composite_temp_recon_summer.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+composite_prec_recon_winter = composite_prec_recon_winter.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
+composite_prec_recon_summer = composite_prec_recon_summer.sel(lat=slice(lat_max, lat_min), lon=slice(lon_min, lon_max))
 
 # reduce all variables to common time-range
-start, end           = args.start, '2024'
-monthly_temp         = monthly_temp.sel(time=slice(start, end))
-monthly_prec         = monthly_prec.sel(time=slice(start, end))
-model_temp_recon     = model_temp_recon.sel(time=slice(start, end))
-model_prec_recon     = model_prec_recon.sel(time=slice(start, end))
+start, end                  = args.start, '2024'
+monthly_temp                = monthly_temp.sel(time=slice(start, end))
+monthly_prec                = monthly_prec.sel(time=slice(start, end))
+model_temp_recon            = model_temp_recon.sel(time=slice(start, end))
+model_prec_recon            = model_prec_recon.sel(time=slice(start, end))
 composite_temp_recon_winter = composite_temp_recon_winter.sel(time=slice(start, end))
 composite_temp_recon_summer = composite_temp_recon_summer.sel(time=slice(start, end))
 composite_prec_recon_winter = composite_prec_recon_winter.sel(time=slice(start, end))
@@ -146,8 +153,8 @@ fig, axs = plt.subplots(
     sharex=True, sharey=True, gridspec_kw={'wspace':0, 'hspace':0.05, 'width_ratios' : [1,1,.05,1,1]},
     subplot_kw={'projection': ccrs.PlateCarree()}
 )
-axs[0,0].set_xlim(-20,40)
-axs[0,0].set_ylim(35,70)
+axs[0,0].set_xlim(lon_min, lon_max)
+axs[0,0].set_ylim(lat_min, lat_max)
 [axs[i,2].axis('off') for i in range(3)]
 [axs[i,j].coastlines() for j in range(2) for i in range(3)]
 [axs[i,j].coastlines() for j in range(3,5) for i in range(3)]
