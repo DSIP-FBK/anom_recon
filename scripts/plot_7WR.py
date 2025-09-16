@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.colors import LinearSegmentedColormap
 import cartopy.crs as ccrs
-from cartopy import feature
 
 # custom functions
 from functions import set_figsize
@@ -51,11 +50,9 @@ cax = inset_axes(axs[0,0], width="400%", height="12%", loc="upper center", bbox_
 # plot WR regimes
 i,j = 0,0
 for k in range(1,n_clusters+1):
-    #axs[i,j].axis('off')
     co = axs[i,j].contour(cluster_mean_z500_DJF.longitude, cluster_mean_z500_DJF.latitude, cluster_mean_z500_DJF.sel(cid=order[k-1]).data, colors='k', linewidths=.5, levels=klevels, transform=ccrs.PlateCarree())
     cf = axs[i,j].contourf(cluster_mean_anom_DJF.longitude, cluster_mean_anom_DJF.latitude, cluster_mean_anom_DJF.sel(cid=order[k-1]).data, cmap=cmap, vmin=vmin, vmax=vmax, levels=levels, transform=ccrs.PlateCarree(), extend='max')
     
-    #axs[i,j].clabel(co, fontsize=7)
     axs[i,j].clabel(co, [5100, 5200, 5400, 5600, 5700], inline=True, inline_spacing=-5, fontsize=7)
     
 
@@ -66,7 +63,6 @@ for k in range(1,n_clusters+1):
         j = 0
 
 # plot no regime
-#axs[-1,-1].axis('off')
 axs[-1,-1].contour(no_regime_z500.longitude, no_regime_z500.latitude, no_regime_z500, colors='black', levels=klevels, linewidths=.5, transform=ccrs.PlateCarree())
 axs[-1,-1].contourf(no_regime_anom.longitude, no_regime_anom.latitude, no_regime_anom.data, cmap=cmap, vmin=vmin, vmax=vmax, levels=levels, transform=ccrs.PlateCarree())
 
