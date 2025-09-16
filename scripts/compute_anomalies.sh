@@ -11,15 +11,15 @@ source "$repo_dir/.venv/bin/activate"
 # define the paths to the NetCDF files
 era5_z500_noa="$data_dir/daily_z500_noa_19400101-20241231_regrid.nc"
 era5_t2m_eu="$data_dir/daily_t2m_europe_19400101-20241231_regrid.nc"
-era5_tp_eu="$data_dir/daily_tp_europe_19400101-20241231_merged.nc"
+era5_tp_eu="$data_dir/daily_tp_europe_19400101-20241231_regrid.nc"
 
 seas5_z500_noa="$data_dir/SEAS5_z500_noa_19810101-20241231_biased.nc"
 seas5_t2m_eu="$data_dir/SEAS5_t2m_europe_19810101-20241231_biased.nc"
 seas5_tp_eu="$data_dir/SEAS5_tp_europe_1981-2025.nc"
 
 # climatology
-clim_start="1981-01-01"
-clim_end="2010-12-31"
+clim_start="1981"
+clim_end="2010"
 
 # output paths
 era5_daily_z500_anom_noa="${era5_z500_noa/z500_/z500_anom_}"
@@ -67,7 +67,7 @@ python daily_anomalies.py \
 python daily_to_monthly.py \
     --z500 $era5_daily_z500_anom_noa \
     --t2m $era5_daily_t2m_anom_eu \
-    --tp $era5_daily_tp_anom_eu \
+    --tp $era5_daily_tp_anom_eu 
 
 # ------------------------------------------------
 # SEAS5 BIAS-CORRECTION
@@ -107,15 +107,13 @@ python SEAS5_bias_correction.py \
 # ------------------------------------------------
 # compute SEAS55 monthly geopotential height anomalies
 python SEAS5_monthly_anomalies.py \
-    --era5 $era5_z500_noa \
     --seas5 $seas5_z500_noa_bias \
     --out $seas5_z500_anom_noa_bias \
     --clim_start $clim_start \
-    --clim_end $clim_end 
+    --clim_end $clim_end \
 
 # compute SEAS5 monthly two-meter temperature anomalies
 python SEAS5_monthly_anomalies.py \
-    --era5 $era5_t2m_eu \
     --seas5 $seas5_t2m_eu_bias \
     --out $seas5_t2m_anom_eu_bias \
     --clim_start $clim_start \
@@ -123,7 +121,6 @@ python SEAS5_monthly_anomalies.py \
 
 # compute SEAS5 monthly precipitation anomalies
 python SEAS5_monthly_anomalies.py \
-    --era5 $era5_tp_eu \
     --seas5 $seas5_tp_eu_bias \
     --out $seas5_tp_anom_eu_bias \
     --clim_start $clim_start \
