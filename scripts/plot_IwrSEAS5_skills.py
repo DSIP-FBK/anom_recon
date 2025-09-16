@@ -58,12 +58,12 @@ anomT      = xr.open_dataarray(args.anom_temp).rename({'latitude': 'lat', 'longi
 anomP      = xr.open_dataarray(args.anom_prec).rename({'latitude': 'lat', 'longitude': 'lon'})
 
 # SEAS5 temperature and precipitation
-seas5T      = xr.open_dataarray(args.seas5_temp).rename({'latitude': 'lat', 'longitude': 'lon'})#.transpose('time', 'lat', 'lon', 'number', 'forecastMonth')
-seas5P      = xr.open_dataarray(args.seas5_prec).rename({'latitude': 'lat', 'longitude': 'lon'})#.transpose('time', 'lat', 'lon', 'number', 'forecastMonth')
+seas5T      = xr.open_dataarray(args.seas5_temp).rename({'latitude': 'lat', 'longitude': 'lon'})
+seas5P      = xr.open_dataarray(args.seas5_prec).rename({'latitude': 'lat', 'longitude': 'lon'})
 
 # model with SEAS5 indices
-model_seas5T = xr.open_dataarray(args.model_seas5_temp)
-model_seas5P = xr.open_dataarray(args.model_seas5_prec)
+model_seas5T = xr.open_dataarray(args.model_seas5_temp).mean(dim='number').rename({'ensemble_member': 'number'})
+model_seas5P = xr.open_dataarray(args.model_seas5_prec).mean(dim='number').rename({'ensemble_member': 'number'})
 
 # land sea mask
 lsm = xr.open_dataarray('../data/lsm_regrid_shift_europe.nc').rename({'latitude': 'lat', 'longitude': 'lon'})
@@ -85,13 +85,13 @@ seas5P_JJA  = get_SEAS5_season(seas5P, 'summer')
 
 anomT_DJF            = anomT[np.isin(anomT.time.dt.month, winter_months)]
 anomT_JJA            = anomT[np.isin(anomT.time.dt.month, summer_months)]
-model_seas5_7wrT_DJF = get_SEAS5_season(model_seas5T, 'winter')
-model_seas5_7wrT_JJA = get_SEAS5_season(model_seas5T, 'summer')
+model_seas5T_DJF = get_SEAS5_season(model_seas5T, 'winter')
+model_seas5T_JJA = get_SEAS5_season(model_seas5T, 'summer')
 
 anomP_DJF            = anomP[np.isin(anomP.time.dt.month, winter_months)]
 anomP_JJA            = anomP[np.isin(anomP.time.dt.month, summer_months)]
-model_seas5_7wrP_DJF = get_SEAS5_season(model_seas5P, 'winter')
-model_seas5_7wrP_JJA = get_SEAS5_season(model_seas5P, 'summer')
+model_seas5P_DJF = get_SEAS5_season(model_seas5P, 'winter')
+model_seas5P_JJA = get_SEAS5_season(model_seas5P, 'summer')
 
 # reduce all variables to common time-range
 start, end = args.start, '2024'
@@ -101,10 +101,10 @@ common_time_DJF = np.intersect1d(
     )
 anomT_DJF            = anomT_DJF.sel(time=common_time_DJF)
 seas5T_DJF           = seas5T_DJF.sel(time=common_time_DJF)
-model_seas5_7wrT_DJF = model_seas5_7wrT_DJF.sel(time=common_time_DJF)
+model_seas5T_DJF = model_seas5T_DJF.sel(time=common_time_DJF)
 anomP_DJF            = anomP_DJF.sel(time=common_time_DJF)
 seas5P_DJF           = seas5P_DJF.sel(time=common_time_DJF)
-model_seas5_7wrP_DJF = model_seas5_7wrP_DJF.sel(time=common_time_DJF)
+model_seas5P_DJF = model_seas5P_DJF.sel(time=common_time_DJF)
 
 common_time_JJA = np.intersect1d(
     anomT_JJA.sel(time=slice(args.start, end)).time.values, 
@@ -112,110 +112,143 @@ common_time_JJA = np.intersect1d(
     )
 anomT_JJA            = anomT_JJA.sel(time=common_time_JJA)
 seas5T_JJA           = seas5T_JJA.sel(time=common_time_JJA)
-model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.sel(time=common_time_JJA)
+model_seas5T_JJA = model_seas5T_JJA.sel(time=common_time_JJA)
 anomP_JJA            = anomP_JJA.sel(time=common_time_JJA)
 seas5P_JJA           = seas5P_JJA.sel(time=common_time_JJA)
-model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.sel(time=common_time_JJA)
+model_seas5P_JJA = model_seas5P_JJA.sel(time=common_time_JJA)
 
 # -------------------
 # Sanity check: times
 # -------------------
 # DJF
 assert anomT_DJF.time.equals(seas5T_DJF.time), "Time mismatch: anomT_DJF vs seas5T_DJF"
-assert anomT_DJF.time.equals(model_seas5_7wrT_DJF.time), "Time mismatch: anomT_DJF vs model_seas5_7wrT_DJF"
+assert anomT_DJF.time.equals(model_seas5T_DJF.time), "Time mismatch: anomT_DJF vs model_seas5T_DJF"
 assert anomP_DJF.time.equals(seas5P_DJF.time), "Time mismatch: anomP_DJF vs seas5P_DJF"
-assert anomP_DJF.time.equals(model_seas5_7wrP_DJF.time), "Time mismatch: anomP_DJF vs model_seas5_7wrP_DJF"
+assert anomP_DJF.time.equals(model_seas5P_DJF.time), "Time mismatch: anomP_DJF vs model_seas5P_DJF"
 
 # JJA
 assert anomT_JJA.time.equals(seas5T_JJA.time), "Time mismatch: anomT_JJA vs seas5T_JJA"
-assert anomT_JJA.time.equals(model_seas5_7wrT_JJA.time), "Time mismatch: anomT_JJA vs model_seas5_7wrT_JJA"
+assert anomT_JJA.time.equals(model_seas5T_JJA.time), "Time mismatch: anomT_JJA vs model_seas5T_JJA"
 assert anomP_JJA.time.equals(seas5P_JJA.time), "Time mismatch: anomP_JJA vs seas5P_JJA"
-assert anomP_JJA.time.equals(model_seas5_7wrP_JJA.time), "Time mismatch: anomP_JJA vs model_seas5_7wrP_JJA"
-
-# ensemble and models mean
-seas5T_DJF = seas5T_DJF.mean(dim='number')
-seas5T_JJA = seas5T_JJA.mean(dim='number')
-seas5P_DJF = seas5P_DJF.mean(dim='number')
-seas5P_JJA = seas5P_JJA.mean(dim='number')
-model_seas5_7wrT_DJF = model_seas5_7wrT_DJF.mean(dim=['number', 'ensemble_member'])
-model_seas5_7wrT_JJA = model_seas5_7wrT_JJA.mean(dim=['number', 'ensemble_member'])
-model_seas5_7wrP_DJF = model_seas5_7wrP_DJF.mean(dim=['number', 'ensemble_member'])
-model_seas5_7wrP_JJA = model_seas5_7wrP_JJA.mean(dim=['number', 'ensemble_member'])
-
+assert anomP_JJA.time.equals(model_seas5P_JJA.time), "Time mismatch: anomP_JJA vs model_seas5P_JJA"
 
 # --------------
 # Compute skills
 # --------------
 print('Computing skills...')
 
+# model CRPS
+model_seas5T_DJF_CRPS = crps_vectorized(model_seas5T_DJF, anomT_DJF)
+model_seas5T_JJA_CRPS = crps_vectorized(model_seas5T_JJA, anomT_JJA)
+model_seas5P_DJF_CRPS = crps_vectorized(model_seas5P_DJF, anomP_DJF) * 100 # m to cm
+model_seas5P_JJA_CRPS = crps_vectorized(model_seas5P_JJA, anomP_JJA) * 100 # m to cm
+
+# SEAS5 CRPS
+seas5T_DJF_CRPS = crps_vectorized(seas5T_DJF, anomT_DJF)
+seas5T_JJA_CRPS = crps_vectorized(seas5T_JJA, anomT_JJA)
+seas5P_DJF_CRPS = crps_vectorized(seas5P_DJF, anomP_DJF) * 100 # m to cm
+seas5P_JJA_CRPS = crps_vectorized(seas5P_JJA, anomP_JJA) * 100 # m to cm
+
+# model spread skill ratio
+model_seas5T_DJF_SSR = (model_seas5T_DJF.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomT_DJF - model_seas5T_DJF.mean(dim=['number']))**2).mean(dim='time')))
+model_seas5T_JJA_SSR = (model_seas5T_JJA.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomT_JJA - model_seas5T_JJA.mean(dim=['number']))**2).mean(dim='time')))
+model_seas5P_DJF_SSR = (model_seas5P_DJF.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomP_DJF - model_seas5P_DJF.mean(dim=['number']))**2).mean(dim='time')))
+model_seas5P_JJA_SSR = (model_seas5P_JJA.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomP_JJA - model_seas5P_JJA.mean(dim=['number']))**2).mean(dim='time')))
+
+# SEAS5 spread skill ratio
+seas5T_DJF_SSR = (seas5T_DJF.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomT_DJF - seas5T_DJF.mean(dim='number'))**2).mean(dim='time')))
+seas5T_JJA_SSR = (seas5T_JJA.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomT_JJA - seas5T_JJA.mean(dim='number'))**2).mean(dim='time')))
+seas5P_DJF_SSR = (seas5P_DJF.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomP_DJF - seas5P_DJF.mean(dim='number'))**2).mean(dim='time')))
+seas5P_JJA_SSR = (seas5P_JJA.std(dim='number', ddof=1).mean(dim='time') / np.sqrt(((anomP_JJA - seas5P_JJA.mean(dim='number'))**2).mean(dim='time')))
+
 # model mean absolute error
-model_seas5_7wrT_DJF_MAE = abs(anomT_DJF - model_seas5_7wrT_DJF).mean(dim='time')
-model_seas5_7wrT_JJA_MAE = abs(anomT_JJA - model_seas5_7wrT_JJA).mean(dim='time')
-model_seas5_7wrP_DJF_MAE = abs(anomP_DJF - model_seas5_7wrP_DJF).mean(dim='time') * 100 # m to cm
-model_seas5_7wrP_JJA_MAE = abs(anomP_JJA - model_seas5_7wrP_JJA).mean(dim='time') * 100 # m to cm
+model_seas5T_DJF_MAE = abs(anomT_DJF - model_seas5T_DJF.mean(dim=['number'])).mean(dim='time')
+model_seas5T_JJA_MAE = abs(anomT_JJA - model_seas5T_JJA.mean(dim=['number'])).mean(dim='time')
+model_seas5P_DJF_MAE = abs(anomP_DJF - model_seas5P_DJF.mean(dim=['number'])).mean(dim='time') * 100 # m to cm
+model_seas5P_JJA_MAE = abs(anomP_JJA - model_seas5P_JJA.mean(dim=['number'])).mean(dim='time') * 100 # m to cm
 
 # SEAS5 mean absolute error
-seas5T_DJF_MAE = abs(anomT_DJF - seas5T_DJF).mean(dim='time')
-seas5T_JJA_MAE = abs(anomT_JJA - seas5T_JJA).mean(dim='time')
-seas5P_DJF_MAE = abs(anomP_DJF - seas5P_DJF).mean(dim='time') * 100 # m to cm
-seas5P_JJA_MAE = abs(anomP_JJA - seas5P_JJA).mean(dim='time') * 100 # m to cm
+seas5T_DJF_MAE = abs(anomT_DJF - seas5T_DJF.mean(dim='number')).mean(dim='time')
+seas5T_JJA_MAE = abs(anomT_JJA - seas5T_JJA.mean(dim='number')).mean(dim='time')
+seas5P_DJF_MAE = abs(anomP_DJF - seas5P_DJF.mean(dim='number')).mean(dim='time') * 100 # m to cm
+seas5P_JJA_MAE = abs(anomP_JJA - seas5P_JJA.mean(dim='number')).mean(dim='time') * 100 # m to cm
 
 # model anomaly correlation coefficient
-model_seas5_7wrT_DJF_ACC = xr.corr(anomT_DJF, model_seas5_7wrT_DJF, dim='time')
-model_seas5_7wrT_JJA_ACC = xr.corr(anomT_JJA, model_seas5_7wrT_JJA, dim='time')
-model_seas5_7wrP_DJF_ACC = xr.corr(anomP_DJF, model_seas5_7wrP_DJF, dim='time')
-model_seas5_7wrP_JJA_ACC = xr.corr(anomP_JJA, model_seas5_7wrP_JJA, dim='time')
+model_seas5T_DJF_ACC = xr.corr(anomT_DJF, model_seas5T_DJF.mean(dim=['number']), dim='time')
+model_seas5T_JJA_ACC = xr.corr(anomT_JJA, model_seas5T_JJA.mean(dim=['number']), dim='time')
+model_seas5P_DJF_ACC = xr.corr(anomP_DJF, model_seas5P_DJF.mean(dim=['number']), dim='time')
+model_seas5P_JJA_ACC = xr.corr(anomP_JJA, model_seas5P_JJA.mean(dim=['number']), dim='time')
 
 # SEAS5 anomaly correlation coefficient
-seas5T_DJF_ACC = xr.corr(anomT_DJF, seas5T_DJF, dim='time')
-seas5T_JJA_ACC = xr.corr(anomT_JJA, seas5T_JJA, dim='time')
-seas5P_DJF_ACC = xr.corr(anomP_DJF, seas5P_DJF, dim='time')
-seas5P_JJA_ACC = xr.corr(anomP_JJA, seas5P_JJA, dim='time')
+seas5T_DJF_ACC = xr.corr(anomT_DJF, seas5T_DJF.mean(dim='number'), dim='time')
+seas5T_JJA_ACC = xr.corr(anomT_JJA, seas5T_JJA.mean(dim='number'), dim='time')
+seas5P_DJF_ACC = xr.corr(anomP_DJF, seas5P_DJF.mean(dim='number'), dim='time')
+seas5P_JJA_ACC = xr.corr(anomP_JJA, seas5P_JJA.mean(dim='number'), dim='time')
 
 # model coefficient of efficacy
-model_seas5_7wrT_DJF_CE = get_ce(anomT_DJF, model_seas5_7wrT_DJF)
-model_seas5_7wrT_JJA_CE = get_ce(anomT_JJA, model_seas5_7wrT_JJA)
-model_seas5_7wrP_DJF_CE = get_ce(anomP_DJF, model_seas5_7wrP_DJF)
-model_seas5_7wrP_JJA_CE = get_ce(anomP_JJA, model_seas5_7wrP_JJA)
+model_seas5T_DJF_CE = get_ce(anomT_DJF, model_seas5T_DJF.mean(dim=['number']))
+model_seas5T_JJA_CE = get_ce(anomT_JJA, model_seas5T_JJA.mean(dim=['number']))
+model_seas5P_DJF_CE = get_ce(anomP_DJF, model_seas5P_DJF.mean(dim=['number']))
+model_seas5P_JJA_CE = get_ce(anomP_JJA, model_seas5P_JJA.mean(dim=['number']))
 
 # SEAS coefficient of efficacy
-seas5T_DJF_CE = get_ce(anomT_DJF, seas5T_DJF)
-seas5T_JJA_CE = get_ce(anomT_JJA, seas5T_JJA)
-seas5P_DJF_CE = get_ce(anomP_DJF, seas5P_DJF)
-seas5P_JJA_CE = get_ce(anomP_JJA, seas5P_JJA)
+seas5T_DJF_CE = get_ce(anomT_DJF, seas5T_DJF.mean(dim='number'))
+seas5T_JJA_CE = get_ce(anomT_JJA, seas5T_JJA.mean(dim='number'))
+seas5P_DJF_CE = get_ce(anomP_DJF, seas5P_DJF.mean(dim='number'))
+seas5P_JJA_CE = get_ce(anomP_JJA, seas5P_JJA.mean(dim='number'))
 
 # mask outside land
-model_seas5_7wrT_DJF_MAE = model_seas5_7wrT_DJF_MAE.where(lsm > .8)
-model_seas5_7wrT_JJA_MAE = model_seas5_7wrT_JJA_MAE.where(lsm > .8)
-model_seas5_7wrP_DJF_MAE = model_seas5_7wrP_DJF_MAE.where(lsm > .8)
-model_seas5_7wrP_JJA_MAE = model_seas5_7wrP_JJA_MAE.where(lsm > .8)
+model_seas5T_DJF_CRPS = model_seas5T_DJF_CRPS.where(lsm > .8)
+model_seas5T_JJA_CRPS = model_seas5T_JJA_CRPS.where(lsm > .8)
+model_seas5P_DJF_CRPS = model_seas5P_DJF_CRPS.where(lsm > .8)
+model_seas5P_JJA_CRPS = model_seas5P_JJA_CRPS.where(lsm > .8)
+seas5T_DJF_CRPS = seas5T_DJF_CRPS.where(lsm > .8)
+seas5T_JJA_CRPS = seas5T_JJA_CRPS.where(lsm > .8)
+seas5P_DJF_CRPS = seas5P_DJF_CRPS.where(lsm > .8)
+seas5P_JJA_CRPS = seas5P_JJA_CRPS.where(lsm > .8)
+
+model_seas5T_DJF_SSR = model_seas5T_DJF_SSR.where(lsm > .8)
+model_seas5T_JJA_SSR = model_seas5T_JJA_SSR.where(lsm > .8)
+model_seas5P_DJF_SSR = model_seas5P_DJF_SSR.where(lsm > .8)
+model_seas5P_JJA_SSR = model_seas5P_JJA_SSR.where(lsm > .8)
+seas5T_DJF_SSR = seas5T_DJF_SSR.where(lsm > .8)
+seas5T_JJA_SSR = seas5T_JJA_SSR.where(lsm > .8)
+seas5P_DJF_SSR = seas5P_DJF_SSR.where(lsm > .8)
+seas5P_JJA_SSR = seas5P_JJA_SSR.where(lsm > .8)
+
+model_seas5T_DJF_MAE = model_seas5T_DJF_MAE.where(lsm > .8)
+model_seas5T_JJA_MAE = model_seas5T_JJA_MAE.where(lsm > .8)
+model_seas5P_DJF_MAE = model_seas5P_DJF_MAE.where(lsm > .8)
+model_seas5P_JJA_MAE = model_seas5P_JJA_MAE.where(lsm > .8)
 seas5T_DJF_MAE = seas5T_DJF_MAE.where(lsm > .8)
 seas5T_JJA_MAE = seas5T_JJA_MAE.where(lsm > .8)
 seas5P_DJF_MAE = seas5P_DJF_MAE.where(lsm > .8)
 seas5P_JJA_MAE = seas5P_JJA_MAE.where(lsm > .8)
-model_seas5_7wrT_DJF_ACC = model_seas5_7wrT_DJF_ACC.where(lsm > .8)
-model_seas5_7wrT_JJA_ACC = model_seas5_7wrT_JJA_ACC.where(lsm > .8)
-model_seas5_7wrP_DJF_ACC = model_seas5_7wrP_DJF_ACC.where(lsm > .8)
-model_seas5_7wrP_JJA_ACC = model_seas5_7wrP_JJA_ACC.where(lsm > .8)
+
+model_seas5T_DJF_ACC = model_seas5T_DJF_ACC.where(lsm > .8)
+model_seas5T_JJA_ACC = model_seas5T_JJA_ACC.where(lsm > .8)
+model_seas5P_DJF_ACC = model_seas5P_DJF_ACC.where(lsm > .8)
+model_seas5P_JJA_ACC = model_seas5P_JJA_ACC.where(lsm > .8)
 seas5T_DJF_ACC = seas5T_DJF_ACC.where(lsm > .8)
 seas5T_JJA_ACC = seas5T_JJA_ACC.where(lsm > .8)
 seas5P_DJF_ACC = seas5P_DJF_ACC.where(lsm > .8)
 seas5P_JJA_ACC = seas5P_JJA_ACC.where(lsm > .8)
-model_seas5_7wrT_DJF_CE = model_seas5_7wrT_DJF_CE.where(lsm > .8)
-model_seas5_7wrT_JJA_CE = model_seas5_7wrT_JJA_CE.where(lsm > .8)
-model_seas5_7wrP_DJF_CE = model_seas5_7wrP_DJF_CE.where(lsm > .8)
-model_seas5_7wrP_JJA_CE = model_seas5_7wrP_JJA_CE.where(lsm > .8)
+
+model_seas5T_DJF_CE = model_seas5T_DJF_CE.where(lsm > .8)
+model_seas5T_JJA_CE = model_seas5T_JJA_CE.where(lsm > .8)
+model_seas5P_DJF_CE = model_seas5P_DJF_CE.where(lsm > .8)
+model_seas5P_JJA_CE = model_seas5P_JJA_CE.where(lsm > .8)
 seas5T_DJF_CE = seas5T_DJF_CE.where(lsm > .8)
 seas5T_JJA_CE = seas5T_JJA_CE.where(lsm > .8)
 seas5P_DJF_CE = seas5P_DJF_CE.where(lsm > .8)
 seas5P_JJA_CE = seas5P_JJA_CE.where(lsm > .8)
 
 # mask CE values below certain threshold (not relevant)
-# threshold = -1 # min(model_seas5_7wrT_DJF_CE.min(), model_seas5_7wrT_JJA_CE.min(), model_seas5_7wrP_DJF_CE.min(), model_seas5_7wrP_JJA_CE.min())
-# model_seas5_7wrT_DJF_CE = xr.where(model_seas5_7wrT_DJF_CE < threshold, threshold, model_seas5_7wrT_DJF_CE)
-# model_seas5_7wrT_JJA_CE = xr.where(model_seas5_7wrT_JJA_CE < threshold, threshold, model_seas5_7wrT_JJA_CE)
-# model_seas5_7wrP_DJF_CE = xr.where(model_seas5_7wrP_DJF_CE < threshold, threshold, model_seas5_7wrP_DJF_CE)
-# model_seas5_7wrP_JJA_CE = xr.where(model_seas5_7wrP_JJA_CE < threshold, threshold, model_seas5_7wrP_JJA_CE)
+# threshold = -1 # min(model_seas5T_DJF_CE.min(), model_seas5T_JJA_CE.min(), model_seas5P_DJF_CE.min(), model_seas5P_JJA_CE.min())
+# model_seas5T_DJF_CE = xr.where(model_seas5T_DJF_CE < threshold, threshold, model_seas5T_DJF_CE)
+# model_seas5T_JJA_CE = xr.where(model_seas5T_JJA_CE < threshold, threshold, model_seas5T_JJA_CE)
+# model_seas5P_DJF_CE = xr.where(model_seas5P_DJF_CE < threshold, threshold, model_seas5P_DJF_CE)
+# model_seas5P_JJA_CE = xr.where(model_seas5P_JJA_CE < threshold, threshold, model_seas5P_JJA_CE)
 # seas5T_DJF_CE = xr.where(seas5T_DJF_CE < threshold, threshold, seas5T_DJF_CE)
 # seas5T_JJA_CE = xr.where(seas5T_JJA_CE < threshold, threshold, seas5T_JJA_CE)
 # seas5P_DJF_CE = xr.where(seas5P_DJF_CE < threshold, threshold, seas5P_DJF_CE)
@@ -229,67 +262,82 @@ columnwidth = 196.1
 seas5_color = '#b81b22'
 model_color = '#204487'
 fig, axs = plt.subplots(
-    3, 2, figsize=set_figsize(columnwidth, .6, subplots=(3,2)), layout="constrained",
-    sharex=True, sharey='row'
+    4, 2, figsize=set_figsize(columnwidth, .5, subplots=(4,2)), layout="constrained", sharex=True, sharey='row'
 )
-fig.get_layout_engine().set(w_pad=0, h_pad=0, hspace=0,
-                            wspace=0)
-axs[0,0].text(0.2, 1.15, 'temperature', transform=axs[0,0].transAxes)
-axs[0,0].set_ylabel('MAE', labelpad=11)
-axs[1,0].set_ylabel('ACC')
-axs[2,0].set_ylabel('CE')
-axs[0,1].text(1.2, 1.15, 'precipitation', transform=axs[0,0].transAxes)
+fig.get_layout_engine().set(w_pad=0, h_pad=0, hspace=0, wspace=0)
+axs[0,0].text(0.5, 1.15, 'temperature (K)', horizontalalignment='center', transform=axs[0,0].transAxes)
+axs[0,0].set_ylabel('CRPS\n(K or cm)', labelpad=9)
+axs[1,0].set_ylabel('SSR', labelpad=10)
+axs[2,0].set_ylabel('ACC')
+axs[3,0].set_ylabel('CE')
+axs[0,1].text(0.5, 1.15, 'precipitation (cm)', horizontalalignment='center', transform=axs[0,1].transAxes)
 
-axs[0,0].set_ylim(0, 4)
-axs[1,0].set_ylim(-1, 1)
+axs[0,0].set_ylim(0, 5)
 axs[2,0].set_ylim(-1, 1)
+axs[3,0].set_ylim(-1, 1)
 
 
 # ----------------
 # Plot temperature
 # ----------------
 # SEAS5 winter
-plot_boxplot(axs[0,0], seas5T_DJF_MAE.data.flatten(), [-0.3,], seas5_color, '*')
-plot_boxplot(axs[1,0], seas5T_DJF_ACC.data.flatten(), [-0.3,], seas5_color, '*')
-plot_boxplot(axs[2,0], seas5T_DJF_CE.data.flatten(), [-0.3,], seas5_color, '*')
+#plot_boxplot(axs[0,0], seas5T_DJF_MAE.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[0,0], seas5T_DJF_CRPS.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[1,0], seas5T_DJF_SSR.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[2,0], seas5T_DJF_ACC.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[3,0], seas5T_DJF_CE.data.flatten(), [-0.3,], seas5_color, '*')
 
 # model winter
-plot_boxplot(axs[0,0], model_seas5_7wrT_DJF_MAE.data.flatten(), [0.3,], model_color, '*')
-plot_boxplot(axs[1,0], model_seas5_7wrT_DJF_ACC.data.flatten(), [0.3,], model_color, '*')
-plot_boxplot(axs[2,0], model_seas5_7wrT_DJF_CE.data.flatten(), [0.3,], model_color, '*')
+#plot_boxplot(axs[0,0], model_seas5T_DJF_MAE.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[0,0], model_seas5T_DJF_CRPS.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[1,0], model_seas5T_DJF_SSR.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[2,0], model_seas5T_DJF_ACC.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[3,0], model_seas5T_DJF_CE.data.flatten(), [0.3,], model_color, '*')
 
 # seas summer
-plot_boxplot(axs[0,0], seas5T_JJA_MAE.data.flatten(), [1.7,], seas5_color, '*')
-plot_boxplot(axs[1,0], seas5T_JJA_ACC.data.flatten(), [1.7,], seas5_color, '*')
-plot_boxplot(axs[2,0], seas5T_JJA_CE.data.flatten(), [1.7,], seas5_color, '*')
+#plot_boxplot(axs[0,0], seas5T_JJA_MAE.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[0,0], seas5T_JJA_CRPS.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[1,0], seas5T_JJA_SSR.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[2,0], seas5T_JJA_ACC.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[3,0], seas5T_JJA_CE.data.flatten(), [1.7,], seas5_color, '*')
 
 # model summer
-plot_boxplot(axs[0,0], model_seas5_7wrT_JJA_MAE.data.flatten(), [2.3,], model_color, '*')
-plot_boxplot(axs[1,0], model_seas5_7wrT_JJA_ACC.data.flatten(), [2.3,], model_color, '*')
-plot_boxplot(axs[2,0], model_seas5_7wrT_JJA_CE.data.flatten(), [2.3,], model_color, '*')
+#plot_boxplot(axs[0,0], model_seas5T_JJA_MAE.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[0,0], model_seas5T_JJA_CRPS.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[1,0], model_seas5T_JJA_SSR.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[2,0], model_seas5T_JJA_ACC.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[3,0], model_seas5T_JJA_CE.data.flatten(), [2.3,], model_color, '*')
 
 # ------------------
 # Plot precipitation
 # ------------------
 # SEAS5 winter
-plot_boxplot(axs[0,1], seas5P_DJF_MAE.data.flatten(), [-0.3,], seas5_color, '*')
-plot_boxplot(axs[1,1], seas5P_DJF_ACC.data.flatten(), [-0.3,], seas5_color, '*')
-plot_boxplot(axs[2,1], seas5P_DJF_CE.data.flatten(), [-0.3,], seas5_color, '*')
+#plot_boxplot(axs[0,1], seas5P_DJF_MAE.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[0,1], seas5P_DJF_CRPS.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[1,1], seas5P_DJF_SSR.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[2,1], seas5P_DJF_ACC.data.flatten(), [-0.3,], seas5_color, '*')
+plot_boxplot(axs[3,1], seas5P_DJF_CE.data.flatten(), [-0.3,], seas5_color, '*')
 
 # model winter
-plot_boxplot(axs[0,1], model_seas5_7wrP_DJF_MAE.data.flatten(), [0.3,], model_color, '*')
-plot_boxplot(axs[1,1], model_seas5_7wrP_DJF_ACC.data.flatten(), [0.3,], model_color, '*')
-plot_boxplot(axs[2,1], model_seas5_7wrP_DJF_CE.data.flatten(), [0.3,], model_color, '*')
+#plot_boxplot(axs[0,1], model_seas5P_DJF_MAE.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[0,1], model_seas5P_DJF_CRPS.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[1,1], model_seas5P_DJF_SSR.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[2,1], model_seas5P_DJF_ACC.data.flatten(), [0.3,], model_color, '*')
+plot_boxplot(axs[3,1], model_seas5P_DJF_CE.data.flatten(), [0.3,], model_color, '*')
 
 # seas summer
-plot_boxplot(axs[0,1], seas5P_JJA_MAE.data.flatten(), [1.7,], seas5_color, '*')
-plot_boxplot(axs[1,1], seas5P_JJA_ACC.data.flatten(), [1.7,], seas5_color, '*')
-plot_boxplot(axs[2,1], seas5P_JJA_CE.data.flatten(), [1.7,], seas5_color, '*')
+#plot_boxplot(axs[0,1], seas5P_JJA_MAE.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[0,1], seas5P_JJA_CRPS.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[1,1], seas5P_JJA_SSR.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[2,1], seas5P_JJA_ACC.data.flatten(), [1.7,], seas5_color, '*')
+plot_boxplot(axs[3,1], seas5P_JJA_CE.data.flatten(), [1.7,], seas5_color, '*')
 
 # model summer
-plot_boxplot(axs[0,1], model_seas5_7wrP_JJA_MAE.data.flatten(), [2.3,], model_color, '*')
-plot_boxplot(axs[1,1], model_seas5_7wrP_JJA_ACC.data.flatten(), [2.3,], model_color, '*')
-plot_boxplot(axs[2,1], model_seas5_7wrP_JJA_CE.data.flatten(), [2.3,], model_color, '*')
+#plot_boxplot(axs[0,1], model_seas5P_JJA_MAE.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[0,1], model_seas5P_JJA_CRPS.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[1,1], model_seas5P_JJA_SSR.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[2,1], model_seas5P_JJA_ACC.data.flatten(), [2.3,], model_color, '*')
+plot_boxplot(axs[3,1], model_seas5P_JJA_CE.data.flatten(), [2.3,], model_color, '*')
 
 # legend
 legend_elements = [
@@ -303,12 +351,13 @@ fig.legend(handles=legend_elements, ncol=2, loc='upper left',  bbox_to_anchor=(-
 axs[2,0].set_xticklabels(['DJF', 'JJA'])
 [axs[i,j].tick_params(axis='x', which='both', top=False) for i in range(3) for j in range(2)]
 [axs[i,j].tick_params(axis='x', which='both', bottom=False) for i in range(3) for j in range(2)]
-axs[0,0].set_yticks([1, 2, 3])
-axs[1,0].set_yticks([-0.5, 0, 0.5])
+axs[0,0].set_yticks([1, 3])
+axs[1,0].set_yticks([0.5, 1])
 axs[2,0].set_yticks([-0.5, 0, 0.5])
+axs[3,0].set_yticks([-0.5, 0, 0.5])
 
 # lines separating seasons
-[axs[i,j].axvline(x=1, color='k', linestyle='--', linewidth=.5) for i in range(3) for j in range(2)]
+[axs[i,j].axvline(x=1, color='k', linestyle='--', linewidth=.5) for i in range(4) for j in range(2)]
 
 # save
 plt.savefig(f'plots/IwrSEAS5_skills_{start}-{end}.pdf', bbox_inches='tight')
