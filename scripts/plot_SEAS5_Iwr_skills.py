@@ -100,7 +100,9 @@ axs[0].set_ylabel('forecast month')
 axs[1].set_xlabel(r'$I_{\rm wr}$ index')
 axs[1].set_ylabel('forecast month')
 #axs[0].set_xticks([])
-[axs[i].tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False) for i in range(2)]
+axs[1].tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False)
+axs[1].tick_params(axis='x', which='both', labelrotation=45)
+axs[0].set_xticks([])
 im.colorbar.set_label('CRPS', labelpad=16)
 
 plt.savefig('plots/ERA5_SEAS5_indices_skills.pdf')
