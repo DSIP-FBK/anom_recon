@@ -366,7 +366,7 @@ def crps_1d(ens, obs):
     term2 = 0.5 * term2 / n
     return (term1 - term2).mean(dim='time')
 
-def crps_vectorized(forecast, obs, ):
+def crps_vectorized(forecast, obs):
     """
     forecast: xarray.DataArray, dims ('number','time')
     obs: xarray.DataArray, dims ('time',)
