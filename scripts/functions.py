@@ -353,6 +353,36 @@ def get_ce(ground_truth, reconstruction):
     denominator = ((ground_truth - ground_truth.mean(dim='time'))**2).sum(dim='time')
     return 1 - numerator / denominator
 
+def crps_1d(ens, obs):
+    """
+    ens: shape (n_members,)
+    obs: scalar
+    """
+    n = ens.size
+    term1 = abs(ens - obs).mean(dim='number')
+    term2 = 0
+    for i in ens.number:
+        term2 += abs(ens.sel(number=i) - ens).mean(dim='number')
+    term2 = 0.5 * term2 / n
+    return (term1 - term2).mean(dim='time')
+
+def crps_vectorized(forecast, obs):
+    """
+    forecast: xarray.DataArray, dims ('number','time')
+    obs: xarray.DataArray, dims ('time',)
+    returns: scalar CRPS averaged over time
+    """
+    # term1: mean absolute difference between ensemble and obs
+    term1 = abs(forecast - obs).mean(dim='number')
+
+    # term2: mean absolute difference between all ensemble member pairs
+    f1 = forecast.expand_dims('number2', axis=0)  # shape (1, number, time)
+    f2 = forecast.expand_dims('number2', axis=1)  # shape (number,1,time)
+    term2 = 0.5 * abs(f1 - f2).mean(dim=['number','number2'])
+
+    # average over time
+    return (term1 - term2).mean(dim='time')
+
 # ------------------------------------------------
 # plotting functions
 # ------------------------------------------------
