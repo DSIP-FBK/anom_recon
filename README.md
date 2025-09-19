@@ -142,8 +142,8 @@ To reproduce the plots shown in the paper, run:
 ```bash
 cd scripts
 
-# create the plots
-bash plot_results.sh
+# create the plots and tables
+bash produce_results.sh
 ```
 
 This will takes several hours (~3h).
